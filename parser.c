@@ -242,9 +242,32 @@ void factor(void)
 }
 
 /*
+  TO DO: implementar expr();
+*/
+int expr(void) { return 0; }
+/*
+  TO DO: implementar isotimes();
+*/
+int isotimes(void) { return 0; }
+
+/*
   TO DO: implementar type();
 */
 void type()
 {
     // match(int ou  real (float) ou  double ou boolean)
+}
+
+/*
+    match compara o valor de lookahead com um valor esperado
+*/
+void match(int expected)
+{
+    if (lookahead == expected)
+        lookahead = gettoken(source);
+    else
+    {
+        fprintf(stderr, "token mismatch: expected %d, got %d.\n", expected, lookahead);
+        exit(-3);
+    }
 }
