@@ -10,8 +10,9 @@
  * João Pedro Brum Terra
  *
  ***************************************************/
-#include <keywords.h>
 #include <string.h>
+#include <ctype.h>
+#include <keywords.h>
 
 char *keyword[] = {
     "begin",
@@ -32,9 +33,15 @@ char *keyword[] = {
 int iskeyword(char *identifier)
 {
     int token;
+
+    for (int i = 0; i < strlen(identifier); ++i)
+    {
+        identifier[i] = tolower(identifier[i]);
+    }
+
     for (token = BEGIN; token <= END; token++)
     {
-        if (strcmp(identifier, keyword[token - BEGIN]))
+        if (strcmp(identifier, keyword[token - BEGIN]) == 0)
             return token;
     }
     return 0;
