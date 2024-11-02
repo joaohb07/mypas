@@ -17,7 +17,6 @@ enum tokens
     ID = 1024,
     NUM,
     ASGN,
-    NUM,
     EQ,  // =
     NEQ, // !=
     LEQ, // <=

@@ -12,6 +12,7 @@
  ***************************************************/
 #include <ctype.h>
 #include <string.h>
+#include <keywords.h>
 #include <constants.h>
 #include <lexer.h>
 
@@ -74,13 +75,11 @@ int isID(FILE *tape)
         ungetc(lexeme[i], tape);
         lexeme[i] = 0;
 
-        int token = isQUIT(lexeme);
+        int token = iskeyword(lexeme);
         if (token)
-        {
             return token;
-        }
-
-        return ID;
+        else
+            return ID;
     }
     ungetc(lexeme[i], tape);
     lexeme[i] = 0;
@@ -119,7 +118,7 @@ int isNUM(FILE *tape)
 {
     lexeme[0] = getc(tape);
 
-    if (isdigit(lexeme[0]) || lexeme[0] == '.')
+    if (isdigit(lexeme[0]))
     {
         ungetc(lexeme[0], tape);
 
@@ -144,11 +143,6 @@ void skipspaces(FILE *tape)
     int head;
     while (isspace(head = getc(tape)))
     {
-        if (head == '\n')
-        {
-            ungetc(';', tape);
-            return;
-        }
     };
     ungetc(head, tape);
 }
@@ -160,6 +154,7 @@ int gettoken(FILE *source)
 {
     int token;
     skipspaces(source);
+
     if ((token = isID(source)))
     {
         return token;
