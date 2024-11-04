@@ -19,10 +19,9 @@
 char lexeme[MAXIDLEN + 1];
 
 /*
-  TO DO: revisar e corrigir isRELOP
   TOKENS:
     EQ,  // =
-    NEQ, // !=
+    NEQ, // <>
     LEQ, // <=
     GEQ, // >=
     LT,  // <
@@ -30,32 +29,39 @@ char lexeme[MAXIDLEN + 1];
 */
 int isRELOP(FILE *tape)
 {
-    lexeme[2] = 0;
-    switch (lexeme[0] = getc(tape))
+    int i = 0;
+    switch (lexeme[i] = getc(tape))
     {
     case '<':
-        if ((lexeme[1] = getc(tape)) == '=')
+        i++;
+        if ((lexeme[i] = getc(tape)) == '=')
         {
             return LEQ;
         }
-        if (lexeme[1] == '>')
+        if (lexeme[i] == '>')
         {
             return NEQ;
         }
-        ungetc(lexeme[1], tape);
-        lexeme[1] = 0;
-        return lexeme[0];
+        ungetc(lexeme[i], tape);
+        i--;
+        ungetc(lexeme[i], tape);
+        return LT;
     case '>':
-        if ((lexeme[1] = getc(tape)) == '=')
+        i++;
+        if ((lexeme[i] = getc(tape)) == '=')
         {
             return GEQ;
         }
-        ungetc(lexeme[1], tape);
-        lexeme[1] = 0;
-        return lexeme[0];
+        ungetc(lexeme[i], tape);
+        i--;
+        ungetc(lexeme[i], tape);
+        return GT;
+    case '=':
+        ungetc(lexeme[i], tape);
+        return EQ;
     };
-    ungetc(lexeme[0], tape);
-    lexeme[0] = 0;
+    ungetc(lexeme[i], tape);
+    lexeme[i] = 0;
     return 0;
 }
 

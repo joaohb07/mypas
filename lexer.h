@@ -18,7 +18,7 @@ enum tokens
     NUM,
     ASGN,
     EQ,  // =
-    NEQ, // !=
+    NEQ, // <>
     LEQ, // <=
     GEQ, // >=
     LT,  // <
