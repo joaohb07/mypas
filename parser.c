@@ -16,10 +16,6 @@
 #include <lexer.h>
 #include <parser.h>
 
-/*
- TO DO: criar arquivo mypas.c para testar
-*/
-
 int lookahead;
 
 void program(void)
@@ -242,9 +238,90 @@ void factor(void)
 }
 
 /*
+  TO DO: verificar e corrigir expr(), relop() e simpleExpr caso necessário
+*/
+
+void expr(void)
+{
+    simpleExpr();
+    if (relop())
+    {
+        simpleExpr();
+    }
+}
+
+int relop(void)
+{
+    switch (lookahead)
+    {
+    case LT:
+        match(LT);
+        return LT;
+    case LEQ:
+        match(LEQ);
+        return LEQ;
+    case EQ:
+        match(EQ);
+        return EQ;
+    case NEQ:
+        match(NEQ);
+        return NEQ;
+    case GEQ:
+        match(GEQ);
+        return GEQ;
+    case GT:
+        match(GT);
+        return GT;
+    case IN:
+        match(IN);
+        return IN;
+    default:
+        return 0;
+    }
+}
+
+void simpleExpr(void)
+{
+    if (lookahead == '+' || lookahead == '-')
+    {
+        match(lookahead);
+    }
+    term();
+    while (isoplus())
+    {
+        match(lookahead);
+        term();
+    }
+}
+
+/*
+  TO DO: implementar isotimes();
+*/
+int isotimes(void) { return 0; }
+
+/*
+  TO DO: implementar isoplus();
+*/
+int isoplus(void) { return 0; }
+
+/*
   TO DO: implementar type();
 */
 void type()
 {
     // match(int ou  real (float) ou  double ou boolean)
+}
+
+/*
+    match compara o valor de lookahead com um valor esperado
+*/
+void match(int expected)
+{
+    if (lookahead == expected)
+        lookahead = gettoken(source);
+    else
+    {
+        fprintf(stderr, "token mismatch: expected %d (%c), got %d (%c).\n", expected, expected, lookahead, lookahead);
+        exit(-3);
+    }
 }

@@ -12,16 +12,16 @@
  ***************************************************/
 #include <ctype.h>
 #include <string.h>
+#include <keywords.h>
 #include <constants.h>
 #include <lexer.h>
 
 char lexeme[MAXIDLEN + 1];
 
 /*
-  TO DO: revisar e corrigir isRELOP
   TOKENS:
     EQ,  // =
-    NEQ, // !=
+    NEQ, // <>
     LEQ, // <=
     GEQ, // >=
     LT,  // <
@@ -29,32 +29,39 @@ char lexeme[MAXIDLEN + 1];
 */
 int isRELOP(FILE *tape)
 {
-    lexeme[2] = 0;
-    switch (lexeme[0] = getc(tape))
+    int i = 0;
+    switch (lexeme[i] = getc(tape))
     {
     case '<':
-        if ((lexeme[1] = getc(tape)) == '=')
+        i++;
+        if ((lexeme[i] = getc(tape)) == '=')
         {
             return LEQ;
         }
-        if (lexeme[1] == '>')
+        if (lexeme[i] == '>')
         {
             return NEQ;
         }
-        ungetc(lexeme[1], tape);
-        lexeme[1] = 0;
-        return lexeme[0];
+        ungetc(lexeme[i], tape);
+        i--;
+        ungetc(lexeme[i], tape);
+        return LT;
     case '>':
-        if ((lexeme[1] = getc(tape)) == '=')
+        i++;
+        if ((lexeme[i] = getc(tape)) == '=')
         {
             return GEQ;
         }
-        ungetc(lexeme[1], tape);
-        lexeme[1] = 0;
-        return lexeme[0];
+        ungetc(lexeme[i], tape);
+        i--;
+        ungetc(lexeme[i], tape);
+        return GT;
+    case '=':
+        ungetc(lexeme[i], tape);
+        return EQ;
     };
-    ungetc(lexeme[0], tape);
-    lexeme[0] = 0;
+    ungetc(lexeme[i], tape);
+    lexeme[i] = 0;
     return 0;
 }
 
@@ -74,13 +81,11 @@ int isID(FILE *tape)
         ungetc(lexeme[i], tape);
         lexeme[i] = 0;
 
-        int token = isQUIT(lexeme);
+        int token = iskeyword(lexeme);
         if (token)
-        {
             return token;
-        }
-
-        return ID;
+        else
+            return ID;
     }
     ungetc(lexeme[i], tape);
     lexeme[i] = 0;
@@ -119,7 +124,7 @@ int isNUM(FILE *tape)
 {
     lexeme[0] = getc(tape);
 
-    if (isdigit(lexeme[0]) || lexeme[0] == '.')
+    if (isdigit(lexeme[0]))
     {
         ungetc(lexeme[0], tape);
 
@@ -144,11 +149,6 @@ void skipspaces(FILE *tape)
     int head;
     while (isspace(head = getc(tape)))
     {
-        if (head == '\n')
-        {
-            ungetc(';', tape);
-            return;
-        }
     };
     ungetc(head, tape);
 }
@@ -160,6 +160,7 @@ int gettoken(FILE *source)
 {
     int token;
     skipspaces(source);
+
     if ((token = isID(source)))
     {
         return token;
