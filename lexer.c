@@ -17,6 +17,7 @@
 #include <lexer.h>
 
 char lexeme[MAXIDLEN + 1];
+int linenum = 1;
 
 /*
   TOKENS:
@@ -149,6 +150,14 @@ void skipspaces(FILE *tape)
     int head;
     while (isspace(head = getc(tape)))
     {
+        if (head == '\n')
+        {
+            linenum++;
+        }
+        if (head == EOF)
+        {
+            break;
+        }
     };
     ungetc(head, tape);
 }

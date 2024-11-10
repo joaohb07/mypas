@@ -1,3 +1,5 @@
 program HelloWorld(output);
-begin        
+begin
 end.
+
+o que vier depois de "." é comentário

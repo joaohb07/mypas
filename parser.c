@@ -47,7 +47,6 @@ void block(void)
     vardef();
     sbprgdef();
     beginend();
-    match('.');
 }
 
 void vardef(void)
@@ -317,11 +316,14 @@ void type()
 */
 void match(int expected)
 {
+    // printf("match(%d|%c): lookahead: %d|%c\n",expected,expected,lookahead,lookahead);
     if (lookahead == expected)
+    {
         lookahead = gettoken(source);
+    }
     else
     {
-        fprintf(stderr, "token mismatch: expected %d (%c), got %d (%c).\n", expected, expected, lookahead, lookahead);
+        fprintf(stderr, "ERROR - token mismatch at line %d\n", linenum);
         exit(-3);
     }
 }
