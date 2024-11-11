@@ -25,5 +25,6 @@ enum tokens
     GT,  // >
 };
 
+extern int linenum;
 extern char lexeme[];
 extern int gettoken(FILE *source);
