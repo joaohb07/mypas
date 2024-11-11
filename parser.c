@@ -327,7 +327,7 @@ void match(int expected)
         lookahead = gettoken(source);
     else
     {
-        fprintf(stderr, "syntax error: expected %d (%c), got %d (%c).\n", expected, expected, lookahead, lookahead);
+        fprintf(stderr, "syntax error at line %d: expected %d (%c), got %d (%c).\n", linenum,expected, expected, lookahead, lookahead);
         exit(-3);
     }
 }

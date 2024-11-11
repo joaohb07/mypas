@@ -77,7 +77,8 @@ int isID(FILE *tape)
     {
         ++i;
         while (isalnum(lexeme[i] = getc(tape)))
-            if (i < MAXIDLEN) ++i;
+            if (i < MAXIDLEN)
+                ++i;
 
         ungetc(lexeme[i], tape);
         lexeme[i] = 0;
@@ -153,18 +154,26 @@ _skipspaces:
     while (isspace(head = getc(tape)))
     {
         if (head == '\n')
-           linenum++;
+            linenum++;
+        if (head == EOF)
+            break;
     };
 
-    if (head == '{') {
-        while(head != '}') {
+    if (head == '{')
+    {
+        while (head != '}')
+        {
+            if (head == EOF)
+            {
+                break;
+            }
             if (head == '\n')
                 linenum++;
             head = getc(tape);
         }
         goto _skipspaces;
     }
-    
+
     ungetc(head, tape);
 }
 
