@@ -30,6 +30,7 @@ int linenum = 1;
 */
 int isRELOP(FILE *tape)
 {
+    int relop = 0;
     int i = 0;
     switch (lexeme[i] = getc(tape))
     {
@@ -37,33 +38,37 @@ int isRELOP(FILE *tape)
         i++;
         if ((lexeme[i] = getc(tape)) == '=')
         {
-            return LEQ;
+            relop = LEQ;
+            break;
         }
         if (lexeme[i] == '>')
         {
-            return NEQ;
+            relop = NEQ;
+            break;
         }
         ungetc(lexeme[i], tape);
         i--;
         ungetc(lexeme[i], tape);
-        return LT;
+        relop = LT;
+        break;
     case '>':
         i++;
         if ((lexeme[i] = getc(tape)) == '=')
         {
-            return GEQ;
+            relop = GEQ;
+            break;
         }
         ungetc(lexeme[i], tape);
-        i--;
-        ungetc(lexeme[i], tape);
-        return GT;
+        relop = GT;
+        break;
     case '=':
         ungetc(lexeme[i], tape);
-        return EQ;
+        relop = EQ;
+        break;
     };
     ungetc(lexeme[i], tape);
     lexeme[i] = 0;
-    return 0;
+    return relop;
 }
 
 /*
@@ -107,6 +112,7 @@ int isASGN(FILE *tape)
         lexeme[i] = getc(tape);
         if (lexeme[i] == '=')
         {
+            ungetc(lexeme[i], tape);
             lexeme[i] = 0;
             return ASGN;
         }

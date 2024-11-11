@@ -47,7 +47,6 @@ void block(void)
     vardef();
     sbprgdef();
     beginend();
-    match('.');
 }
 
 void vardef(void)
