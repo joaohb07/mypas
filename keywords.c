@@ -28,7 +28,13 @@ char *keyword[] = {
     "until",
     "var",
     "in",
-    "end"};
+    "integer",
+    "boolean",
+    "double",
+    "real",
+    "end"
+};
+
 
 int iskeyword(char *identifier)
 {

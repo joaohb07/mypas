@@ -17,6 +17,7 @@
 #include <lexer.h>
 
 char lexeme[MAXIDLEN + 1];
+int linenum = 1;
 
 /*
   TOKENS:
@@ -76,7 +77,7 @@ int isID(FILE *tape)
     {
         ++i;
         while (isalnum(lexeme[i] = getc(tape)))
-            ++i;
+            if (i < MAXIDLEN) ++i;
 
         ungetc(lexeme[i], tape);
         lexeme[i] = 0;
@@ -147,9 +148,23 @@ int isNUM(FILE *tape)
 void skipspaces(FILE *tape)
 {
     int head;
+
+_skipspaces:
     while (isspace(head = getc(tape)))
     {
+        if (head == '\n')
+           linenum++;
     };
+
+    if (head == '{') {
+        while(head != '}') {
+            if (head == '\n')
+                linenum++;
+            head = getc(tape);
+        }
+        goto _skipspaces;
+    }
+    
     ungetc(head, tape);
 }
 
