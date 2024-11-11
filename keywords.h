@@ -25,6 +25,10 @@ enum keywords
     UNTIL,
     VAR,
     IN,
+    INTEGER,
+    REAL,
+    DOUBLE,
+    BOOLEAN,
     END,
 };
 

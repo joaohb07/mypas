@@ -304,12 +304,18 @@ int isotimes(void) { return 0; }
 */
 int isoplus(void) { return 0; }
 
-/*
-  TO DO: implementar type();
-*/
 void type()
 {
     // match(int ou  real (float) ou  double ou boolean)
+    switch(lookahead) {
+        case INTEGER:
+        case REAL:
+        case DOUBLE:
+            match(lookahead);
+            break;
+        default:
+            match(BOOLEAN);
+    }
 }
 
 /*
@@ -321,7 +327,7 @@ void match(int expected)
         lookahead = gettoken(source);
     else
     {
-        fprintf(stderr, "token mismatch: expected %d (%c), got %d (%c).\n", expected, expected, lookahead, lookahead);
+        fprintf(stderr, "syntax error: expected %d (%c), got %d (%c).\n", expected, expected, lookahead, lookahead);
         exit(-3);
     }
 }

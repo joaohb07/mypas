@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     // }
     // else
     // {
-    source = fopen("input.pas", "r+");
+    source = fopen("inputs/input.pas", "r+");
     lookahead = gettoken(source);
     program();
     // }

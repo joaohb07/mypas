@@ -18,6 +18,8 @@ extern FILE *source;
 extern int lookahead;
 extern void match(int expected);
 
+// extern int gettoken(FILE *);
+
 void program(void);
 void idlist(void);
 void block(void);

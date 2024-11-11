@@ -11,7 +11,7 @@
 ###################################################
 CFLAGS = -I. -g
 
-relocatable = mypas.o lexer.o parser.o keywords.o
+relocatable = mypas.o lexer.o parser.o keywords.o symtab.o
 
 mypas: $(relocatable)
 	$(CC) -o mypas $(relocatable)
