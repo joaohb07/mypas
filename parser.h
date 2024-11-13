@@ -38,7 +38,7 @@ void term(void);
 void factor(void);
 void type(void);
 void expr(void);
-void simpleExpr(void);
+void smpexpr(void);
 int relop(void);
 int isoplus(void);
 int isotimes(void);

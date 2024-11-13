@@ -20,6 +20,7 @@ int lookahead;
 
 void program(void)
 {
+
     match(PROGRAM);
     match(ID);
     match('(');
@@ -70,7 +71,7 @@ void sbprgdef(void)
     {
         int isfunc = (lookahead == FUNCTION);
 
-        match(lookahead); // match procedure ou function
+        match(lookahead);
         match(ID);
         parmlist();
         if (isfunc)
@@ -147,15 +148,14 @@ void stmt(void)
     }
 }
 
-void idstmt()
+void idstmt(void)
 {
     match(ID);
-    if (lookahead == ASGN) // DA PRA APROVEITAR O DO MYBC
+    if (lookahead == ASGN)
     {
         match(ASGN);
         expr();
     }
-    /* OBS NÃO UTILIZAREMOS PROCEDURE IDENTIFIER*/
     else
     {
         exprlist();
@@ -222,7 +222,7 @@ void factor(void)
     switch (lookahead)
     {
     case ID:
-        match(ID); // it can be variable or func identifier
+        match(ID);
         exprlist();
         break;
     case NUM:
@@ -236,16 +236,13 @@ void factor(void)
     }
 }
 
-/*
-  TO DO: verificar e corrigir expr(), relop() e simpleExpr caso necessário
-*/
-
 void expr(void)
 {
-    simpleExpr();
+    smpexpr();
     if (relop())
     {
-        simpleExpr();
+        match(lookahead);
+        smpexpr();
     }
 }
 
@@ -254,32 +251,18 @@ int relop(void)
     switch (lookahead)
     {
     case LT:
-        match(LT);
-        return LT;
     case LEQ:
-        match(LEQ);
-        return LEQ;
     case EQ:
-        match(EQ);
-        return EQ;
     case NEQ:
-        match(NEQ);
-        return NEQ;
     case GEQ:
-        match(GEQ);
-        return GEQ;
     case GT:
-        match(GT);
-        return GT;
-    case IN:
-        match(IN);
-        return IN;
+        return lookahead;
     default:
         return 0;
     }
 }
 
-void simpleExpr(void)
+void smpexpr(void)
 {
     if (lookahead == '+' || lookahead == '-')
     {
@@ -293,40 +276,51 @@ void simpleExpr(void)
     }
 }
 
-/*
-  TO DO: implementar isotimes();
-*/
-int isotimes(void) { return 0; }
-
-/*
-  TO DO: implementar isoplus();
-*/
-int isoplus(void) { return 0; }
-
-void type()
+int isotimes(void)
 {
-    // match(int ou  real (float) ou  double ou boolean)
-    switch(lookahead) {
-        case INTEGER:
-        case REAL:
-        case DOUBLE:
-            match(lookahead);
-            break;
-        default:
-            match(BOOLEAN);
+    switch (lookahead)
+    {
+    case '*':
+    case '/':
+        return lookahead;
+    default:
+        return 0;
     }
 }
 
-/*
-    match compara o valor de lookahead com um valor esperado
-*/
+int isoplus(void)
+{
+    switch (lookahead)
+    {
+    case '+':
+    case '-':
+        return lookahead;
+    default:
+        return 0;
+    }
+}
+
+void type()
+{
+    switch (lookahead)
+    {
+    case INTEGER:
+    case REAL:
+    case DOUBLE:
+        match(lookahead);
+        break;
+    default:
+        match(BOOLEAN);
+    }
+}
+
 void match(int expected)
 {
     if (lookahead == expected)
         lookahead = gettoken(source);
     else
     {
-        fprintf(stderr, "syntax error at line %d: expected %d (%c), got %d (%c).\n", linenum,expected, expected, lookahead, lookahead);
+        fprintf(stderr, "Syntax error at line %d\n", linenum);
         exit(-3);
     }
 }
