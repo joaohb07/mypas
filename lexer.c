@@ -104,24 +104,17 @@ int isID(FILE *tape)
 */
 int isASGN(FILE *tape)
 {
-    int i = 0;
-    lexeme[i] = getc(tape);
-    if (lexeme[i] == ':')
+    if ((lexeme[0] = getc(tape)) == ':')
     {
-        i++;
-        lexeme[i] = getc(tape);
-        if (lexeme[i] == '=')
+        if ((lexeme[1] = getc(tape)) == '=')
         {
-            ungetc(lexeme[i], tape);
-            lexeme[i] = 0;
+            lexeme[2] = 0;
             return ASGN;
         }
-        ungetc(lexeme[i], tape);
-        lexeme[i] = 0;
-        --i;
+        ungetc(lexeme[1], tape);
     }
-    ungetc(lexeme[i], tape);
-    lexeme[i] = 0;
+    ungetc(lexeme[0], tape);
+    lexeme[0] = 0;
     return 0;
 }
 
