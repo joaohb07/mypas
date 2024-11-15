@@ -16,6 +16,8 @@
 #include <lexer.h>
 #include <parser.h>
 
+int lexlevel = 1;
+int error_count = 0;
 int lookahead;
 
 void program(void)
@@ -33,8 +35,14 @@ void program(void)
 
 void idlist(void)
 {
-
+    int error_stat = 0;
 _idlist:
+    error_stat = symtab_append(lexeme, lexlevel);
+    if (error_stat)
+    {
+        fprintf(stderr, "FATAL ERROR: symbol already defined\n");
+        error_count++;
+    }
     match(ID);
     if (lookahead == ',')
     {
@@ -42,7 +50,6 @@ _idlist:
         goto _idlist;
     }
 }
-
 void block(void)
 {
     vardef();
@@ -80,8 +87,10 @@ void sbprgdef(void)
             type();
         }
         match(';');
+        lexlevel++; // sobe o lexical level
         block();
         match(';');
+        lexlevel--; // desce o lexical level
     };
 }
 
@@ -150,6 +159,12 @@ void stmt(void)
 
 void idstmt(void)
 {
+    int id_position = symtab_lookup(lexeme, lexlevel);
+    if (id_position < 0)
+    {
+        fprintf(stderr, "FATAL ERROR: symbol not defined\n");
+        error_count++;
+    }
     match(ID);
     if (lookahead == ASGN)
     {
@@ -256,6 +271,7 @@ int relop(void)
     case NEQ:
     case GEQ:
     case GT:
+    case IN:
         return lookahead;
     default:
         return 0;

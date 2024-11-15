@@ -256,6 +256,7 @@ int relop(void)
     case NEQ:
     case GEQ:
     case GT:
+    case IN:
         return lookahead;
     default:
         return 0;
