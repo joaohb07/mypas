@@ -13,19 +13,9 @@
 #pragma once
 #include <constants.h>
 
-// int lookup(char *varname);
-// void store(char *varname, double value);
-// double recall(char *varname);
-// /* memória da calculadora */
-// extern double vmem[];
-// /* tabela de simbolos */
-// extern char symtab[SYMTABSIZE][MAXIDLEN + 1];
-// /* proximo item da tabela */
-// extern int symtab_next_entry;
-
 typedef struct _symtab_
 {
-    char *name[MAXIDLEN];
+    char name[MAXIDLEN];
     int objtype; // objtype pode ser == 0 if procedure; == 1 if function; == 2 if variable
     int type;    // type == 0 if int; type == 1 if int64; == 2 if float32; == 3 if float64; == 4 if bool
     int lexlevel;
@@ -34,6 +24,8 @@ typedef struct _symtab_
 
 extern SYMTAB symtab[];
 // looks up a symbol append to the symbol table (symtab)
-extern int symtab_lookup(char const *, int);
+extern int symtab_lookup(char *, int);
 // looks up a predefined
-extern int symtab_append(char const *, int);
+extern int symtab_append(char *, int);
+
+extern int symtab_next_entry;

@@ -13,11 +13,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <keywords.h>
+#include <symtab.h>
 #include <lexer.h>
 #include <parser.h>
 
 int lexlevel = 1;
+int current_objtype = 0;
+int is_parameter = 0;
 int error_count = 0;
+int current_type = 0;
+
 int lookahead;
 
 void program(void)
@@ -26,6 +31,8 @@ void program(void)
     match(PROGRAM);
     match(ID);
     match('(');
+    current_objtype = 2;
+    is_parameter = 1;
     idlist();
     match(')');
     match(';');
@@ -40,10 +47,14 @@ _idlist:
     error_stat = symtab_append(lexeme, lexlevel);
     if (error_stat)
     {
-        fprintf(stderr, "FATAL ERROR: symbol already defined\n");
+        fprintf(stderr, "FATAL ERROR: symbol \"%s\" already defined\n", lexeme);
         error_count++;
     }
+    symtab[symtab_next_entry].objtype = current_objtype;
+    symtab[symtab_next_entry].parmflag = is_parameter;
+
     match(ID);
+    symtab_next_entry++;
     if (lookahead == ',')
     {
         match(',');
@@ -53,6 +64,7 @@ _idlist:
 void block(void)
 {
     vardef();
+    current_objtype = 0;
     sbprgdef();
     beginend();
 }
@@ -63,9 +75,13 @@ void vardef(void)
     {
         match(VAR);
     _idlist:
+        is_parameter = 0;
+        current_objtype = 2;
         idlist();
         match(':');
         type();
+        symtab[symtab_next_entry - 1].type = current_type;
+
         match(';');
         if (lookahead == ID)
             goto _idlist;
@@ -74,18 +90,31 @@ void vardef(void)
 
 void sbprgdef(void)
 {
+    int error_stat = 0;
     while (lookahead == PROCEDURE || lookahead == FUNCTION)
     {
         int isfunc = (lookahead == FUNCTION);
-
         match(lookahead);
+
+        error_stat = symtab_append(lexeme, lexlevel);
+        if (error_stat)
+        {
+            fprintf(stderr, "FATAL ERROR: symbol \"%s\" already defined\n", lexeme);
+            error_count++;
+        }
+
         match(ID);
+        int current_index = symtab_next_entry;
+        symtab_next_entry++;
         parmlist();
         if (isfunc)
         {
             match(':');
             type();
+            symtab[current_index].type = current_type;
+            current_objtype = 1;
         }
+        symtab[current_index].objtype = current_objtype;
         match(';');
         lexlevel++; // sobe o lexical level
         block();
@@ -125,6 +154,7 @@ void parmlist(void)
         idlist();
         match(':');
         type();
+        symtab[symtab_next_entry].type = current_type;
         if (lookahead == ';')
         {
             match(';');
@@ -162,7 +192,7 @@ void idstmt(void)
     int id_position = symtab_lookup(lexeme, lexlevel);
     if (id_position < 0)
     {
-        fprintf(stderr, "FATAL ERROR: symbol not defined\n");
+        fprintf(stderr, "FATAL ERROR: symbol \"%s\" not defined\n", lexeme);
         error_count++;
     }
     match(ID);
@@ -321,11 +351,19 @@ void type()
     switch (lookahead)
     {
     case INTEGER:
+        current_type = 0;
+        match(lookahead);
+        break;
     case REAL:
+        current_type = 2;
+        match(lookahead);
+        break;
     case DOUBLE:
+        current_type = 3;
         match(lookahead);
         break;
     default:
+        current_type = 4;
         match(BOOLEAN);
     }
 }
