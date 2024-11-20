@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <lexer.h>
 #include <parser.h>
+#include <symtab.h>
 
 FILE *source;
 
@@ -29,6 +30,7 @@ int main(int argc, char *argv[])
     source = fopen("./inputs/teste4.pas", "r");
     lookahead = gettoken(source);
     program();
+    symtab_print();
     // }
     // else
     // {

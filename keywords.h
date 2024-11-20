@@ -26,9 +26,9 @@ enum keywords
     VAR,
     IN,
     INTEGER,
-    REAL,
-    DOUBLE,
     BOOLEAN,
+    DOUBLE,
+    REAL,
     END,
 };
 

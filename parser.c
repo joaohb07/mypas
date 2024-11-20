@@ -18,10 +18,11 @@
 #include <parser.h>
 
 int lexlevel = 1;
-int current_objtype = 0;
-int is_parameter = 0;
 int error_count = 0;
+int is_parameter = 0;
 int current_type = 0;
+int current_objtype = 0;
+int current_index = 0;
 
 int lookahead;
 
@@ -33,7 +34,14 @@ void program(void)
     match('(');
     current_objtype = 2;
     is_parameter = 1;
+    current_index = symtab_next_entry;
     idlist();
+    // set_properties(current_index, prop1, prop2);
+    for (int i = current_index; i < symtab_next_entry; i++)
+    {
+        symtab[i].objtype = 2; // VAR_TYPE
+        symtab[i].parmflag = 1;
+    }
     match(')');
     match(';');
     block();
@@ -50,23 +58,21 @@ _idlist:
         fprintf(stderr, "FATAL ERROR: symbol \"%s\" already defined\n", lexeme);
         error_count++;
     }
-    symtab[symtab_next_entry].objtype = current_objtype;
-    symtab[symtab_next_entry].parmflag = is_parameter;
 
     match(ID);
-    symtab_next_entry++;
     if (lookahead == ',')
     {
         match(',');
         goto _idlist;
     }
 }
+
 void block(void)
 {
     vardef();
     current_objtype = 0;
     sbprgdef();
-    beginend();
+    beginend();    
 }
 
 void vardef(void)
@@ -75,14 +81,17 @@ void vardef(void)
     {
         match(VAR);
     _idlist:
-        is_parameter = 0;
-        current_objtype = 2;
+        current_index = symtab_next_entry;
         idlist();
         match(':');
         type();
-        symtab[symtab_next_entry - 1].type = current_type;
-
         match(';');
+        for (int i = current_index; i < symtab_next_entry; i++)
+        {
+            symtab[i].objtype = 2; // VAR_TYPE
+            symtab[i].parmflag = 0;
+            symtab[i].type = current_type;
+        }
         if (lookahead == ID)
             goto _idlist;
     }
@@ -95,7 +104,7 @@ void sbprgdef(void)
     {
         int isfunc = (lookahead == FUNCTION);
         match(lookahead);
-
+        current_index = symtab_next_entry;
         error_stat = symtab_append(lexeme, lexlevel);
         if (error_stat)
         {
@@ -104,17 +113,15 @@ void sbprgdef(void)
         }
 
         match(ID);
-        int current_index = symtab_next_entry;
-        symtab_next_entry++;
+        symtab[current_index].objtype = 0;
         parmlist();
         if (isfunc)
         {
             match(':');
             type();
             symtab[current_index].type = current_type;
-            current_objtype = 1;
+            symtab[current_index].objtype = 1;
         }
-        symtab[current_index].objtype = current_objtype;
         match(';');
         lexlevel++; // sobe o lexical level
         block();
@@ -122,6 +129,8 @@ void sbprgdef(void)
         lexlevel--; // desce o lexical level
     };
 }
+        // TO DO: ACHAR UM LUGAR PRA ISSO
+        // symtab_next_entry = current_index + 1;
 
 void beginend(void)
 {
@@ -151,10 +160,18 @@ void parmlist(void)
         {
             match(VAR);
         }
+        lexlevel++;
+        int first_index = symtab_next_entry;
         idlist();
+        lexlevel--;
         match(':');
         type();
-        symtab[symtab_next_entry].type = current_type;
+        for (int i = first_index; i < symtab_next_entry; i++)
+        {
+            symtab[i].objtype = 2;
+            symtab[i].parmflag = 1;
+            symtab[i].type = current_type;
+        }
         if (lookahead == ';')
         {
             match(';');
@@ -268,7 +285,15 @@ void factor(void)
     {
     case ID:
         match(ID);
-        exprlist();
+        if (lookahead == ASGN)
+        {
+            match(ASGN);
+            expr();
+        }
+        else if (lookahead == '(')
+        {
+            exprlist();
+        }
         break;
     case NUM:
         match(NUM);
@@ -346,7 +371,7 @@ int isoplus(void)
     }
 }
 
-void type()
+void type(void)
 {
     switch (lookahead)
     {

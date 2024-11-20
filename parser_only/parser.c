@@ -29,6 +29,7 @@ void program(void)
     match(';');
     block();
     match('.');
+    
 }
 
 void idlist(void)
