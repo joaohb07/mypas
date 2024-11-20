@@ -20,22 +20,6 @@
 SYMTAB symtab[MAXSTBSIZE]; // limite de 20 simbolos para testar
 int symtab_next_entry = 0;
 
-// /*
-//     recall procura e retorna o valor de uma váriavel
-// */
-// double recall(char *varname)
-// {
-//     int i = lookup(varname);
-
-//     if (i < 0)
-//     {
-//         return 0.0;
-//     }
-//     else
-//     {
-//         return vmem[i];
-//     }
-// }
 
 // looks up a symbol append to the symbol table (symtab)
 int symtab_lookup(char *lexeme, int lexlevel)
@@ -80,8 +64,9 @@ int symtab_append(char *lexeme, int lexlevel)
 // print symtab for tests purpouses
 void symtab_print(){
     int i = 0;
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < symtab_next_entry; i++)
     {
+        printf("Index: %d\n",i);
         printf("%s\n", symtab[i].name);
         printf("lexical level: %d\n", symtab[i].lexlevel);
         switch (symtab[i].objtype){

@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <keywords.h>
+#include <constants.h>
 
 char *keyword[] = {
     "begin",
@@ -36,9 +37,11 @@ char *keyword[] = {
 };
 
 
-int iskeyword(char *identifier)
+int iskeyword(char *lexeme)
 {
     int token;
+    char identifier[MAXIDLEN]; 
+    strcpy(identifier, lexeme);
 
     for (int i = 0; i < strlen(identifier); ++i)
     {

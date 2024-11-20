@@ -19,9 +19,7 @@
 
 int lexlevel = 1;
 int error_count = 0;
-int is_parameter = 0;
 int current_type = 0;
-int current_objtype = 0;
 int current_index = 0;
 
 int lookahead;
@@ -32,11 +30,8 @@ void program(void)
     match(PROGRAM);
     match(ID);
     match('(');
-    current_objtype = 2;
-    is_parameter = 1;
     current_index = symtab_next_entry;
     idlist();
-    // set_properties(current_index, prop1, prop2);
     for (int i = current_index; i < symtab_next_entry; i++)
     {
         symtab[i].objtype = 2; // VAR_TYPE
@@ -70,7 +65,6 @@ _idlist:
 void block(void)
 {
     vardef();
-    current_objtype = 0;
     sbprgdef();
     beginend();    
 }
@@ -104,7 +98,7 @@ void sbprgdef(void)
     {
         int isfunc = (lookahead == FUNCTION);
         match(lookahead);
-        current_index = symtab_next_entry;
+        int first_func_pro_index = symtab_next_entry;
         error_stat = symtab_append(lexeme, lexlevel);
         if (error_stat)
         {
@@ -113,24 +107,22 @@ void sbprgdef(void)
         }
 
         match(ID);
-        symtab[current_index].objtype = 0;
         parmlist();
         if (isfunc)
         {
             match(':');
             type();
-            symtab[current_index].type = current_type;
-            symtab[current_index].objtype = 1;
+            symtab[first_func_pro_index].type = current_type;
+            symtab[first_func_pro_index].objtype = 1;
         }
         match(';');
         lexlevel++; // sobe o lexical level
         block();
         match(';');
+        symtab_next_entry = first_func_pro_index + 1;
         lexlevel--; // desce o lexical level
     };
 }
-        // TO DO: ACHAR UM LUGAR PRA ISSO
-        // symtab_next_entry = current_index + 1;
 
 void beginend(void)
 {
