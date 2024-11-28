@@ -21,12 +21,10 @@ int lexlevel = 1;
 int error_count = 0;
 int current_type = 0;
 int current_index = 0;
-
 int lookahead;
 
 void program(void)
 {
-
     match(PROGRAM);
     match(ID);
     match('(');
@@ -34,7 +32,7 @@ void program(void)
     idlist();
     for (int i = current_index; i < symtab_next_entry; i++)
     {
-        symtab[i].objtype = 2; // VAR_TYPE
+        symtab[i].objtype = OBJ_VAR;
         symtab[i].parmflag = 1;
     }
     match(')');
@@ -66,7 +64,7 @@ void block(void)
 {
     vardef();
     sbprgdef();
-    beginend();    
+    beginend();
 }
 
 void vardef(void)
@@ -82,7 +80,7 @@ void vardef(void)
         match(';');
         for (int i = current_index; i < symtab_next_entry; i++)
         {
-            symtab[i].objtype = 2; // VAR_TYPE
+            symtab[i].objtype = OBJ_VAR;
             symtab[i].parmflag = 0;
             symtab[i].type = current_type;
         }
@@ -113,7 +111,7 @@ void sbprgdef(void)
             match(':');
             type();
             symtab[first_func_pro_index].type = current_type;
-            symtab[first_func_pro_index].objtype = 1;
+            symtab[first_func_pro_index].objtype = OBJ_FUNCTION;
         }
         match(';');
         lexlevel++; // sobe o lexical level
@@ -160,7 +158,7 @@ void parmlist(void)
         type();
         for (int i = first_index; i < symtab_next_entry; i++)
         {
-            symtab[i].objtype = 2;
+            symtab[i].objtype = OBJ_VAR;
             symtab[i].parmflag = 1;
             symtab[i].type = current_type;
         }
@@ -368,19 +366,23 @@ void type(void)
     switch (lookahead)
     {
     case INTEGER:
-        current_type = 0;
+        current_type = INT32;
+        match(lookahead);
+        break;
+    case LONG:
+        current_type = INT64;
         match(lookahead);
         break;
     case REAL:
-        current_type = 2;
+        current_type = FLOAT32;
         match(lookahead);
         break;
     case DOUBLE:
-        current_type = 3;
+        current_type = FLOAT64;
         match(lookahead);
         break;
     default:
-        current_type = 4;
+        current_type = BOOL;
         match(BOOLEAN);
     }
 }

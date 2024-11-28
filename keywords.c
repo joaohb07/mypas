@@ -30,6 +30,7 @@ char *keyword[] = {
     "var",
     "in",
     "integer",
+    "long",
     "boolean",
     "double",
     "real",

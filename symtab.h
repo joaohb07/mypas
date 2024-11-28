@@ -13,23 +13,39 @@
 #pragma once
 #include <constants.h>
 
+enum objtype
+{
+    OBJ_PROCEDURE = 0,
+    OBJ_FUNCTION,
+    OBJ_VAR,
+};
+
+enum vartype
+{
+    INT32 = 0, // "int"
+    INT64,     // "long"
+    FLOAT32,   // "real"
+    FLOAT64,   // "double"
+    BOOL,      // "boolean"
+};
+
 typedef struct _symtab_
 {
     char name[MAXIDLEN];
-    int objtype; 
-// objtype pode ser == 0 if procedure; 
-//== 1 if function; 
-//== 2 if variable
-    int type;    
-// type == 0 if int;
-// type == 1 if int64;
-// == 2 if float32;
-// == 3 if float64;
-// == 4 if bool
+    int objtype;
+    // objtype pode ser == 0 if procedure;
+    //== 1 if function;
+    //== 2 if variable
+    int type;
+    // type == 0 if int;
+    // type == 1 if int64;
+    // == 2 if float32;
+    // == 3 if float64;
+    // == 4 if bool
     int lexlevel;
     int parmflag;
-// == 0 if variable;
-// == 1 if parameter
+    // == 0 if variable;
+    // == 1 if parameter
 } SYMTAB;
 
 extern SYMTAB symtab[];

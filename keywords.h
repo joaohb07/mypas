@@ -26,6 +26,7 @@ enum keywords
     VAR,
     IN,
     INTEGER,
+    LONG,
     BOOLEAN,
     DOUBLE,
     REAL,
