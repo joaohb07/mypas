@@ -11,31 +11,45 @@
  *
  ***************************************************/
 #include <stdio.h>
-#include <lexer.h>
-#include <parser.h>
+#include <string.h>
 #include <symtab.h>
+#include <lexer.h>
+#include <constants.h>
+#include <parser.h>
 
 FILE *source;
 
 int main(int argc, char *argv[])
 {
-    // if (argc == 1)
-    // {
-    //     fprintf(stderr, "Please provide a .pas file to compile\n");
-    //     exit(1);
-    // }
-    // if (argc == 2)
-    // {
-    // source = fopen(argv[1], "r");
-    source = fopen("./inputs/teste4.pas", "r");
-    lookahead = gettoken(source);
-    program();
-    symtab_print();
-    // }
-    // else
-    // {
-    //     fprintf(stderr, "Too many arguments!\n");
-    //     exit(1);
-    // }
+    if (argc == 1)
+    {
+        fprintf(stderr, "%s", FILE_ERROR);
+        exit(1);
+    }
+    if (argc == 2)
+    {
+        // source = fopen("./inputs/teste4.pas", "r");
+        source = fopen(argv[1], "r");
+        char *extension = strrchr(argv[1], '.');
+
+        if (extension && strcmp(extension, ".pas") == 0)
+        {
+            lookahead = gettoken(source);
+            program();
+
+            puts("symtab final:");
+            symtab_print();
+        }
+        else
+        {
+            fprintf(stderr, "%s", FILE_ERROR);
+            return 1;
+        }
+    }
+    else
+    {
+        fprintf(stderr, "%s", TOO_MANY_ARGS_ERROR);
+        exit(1);
+    }
     return 0;
 }
