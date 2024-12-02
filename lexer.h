@@ -26,5 +26,7 @@ enum tokens
 };
 
 extern int linenum;
+extern int colnum;
+extern int symbolsize;
 extern char lexeme[];
 extern int gettoken(FILE *source);
