@@ -12,6 +12,7 @@
  ***************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <constants.h>
 #include <keywords.h>
 #include <symtab.h>
 #include <lexer.h>
@@ -34,6 +35,7 @@ void program(void)
     {
         symtab[i].objtype = OBJ_VAR;
         symtab[i].parmflag = 1;
+        symtab[i].type = TEXT;
     }
     match(')');
     match(';');
@@ -48,7 +50,7 @@ _idlist:
     error_stat = symtab_append(lexeme, lexlevel);
     if (error_stat)
     {
-        fprintf(stderr, "FATAL ERROR: symbol \"%s\" already defined\n", lexeme);
+        fprintf(stderr, SYMBOL_ALREADY_DEFINED_ERROR, lexeme, linenum, colnum);
         error_count++;
     }
 
@@ -100,7 +102,7 @@ void sbprgdef(void)
         error_stat = symtab_append(lexeme, lexlevel);
         if (error_stat)
         {
-            fprintf(stderr, "FATAL ERROR: symbol \"%s\" already defined\n", lexeme);
+            fprintf(stderr, SYMBOL_ALREADY_DEFINED_ERROR, lexeme, linenum, colnum);
             error_count++;
         }
 
@@ -117,6 +119,10 @@ void sbprgdef(void)
         lexlevel++; // sobe o lexical level
         block();
         match(';');
+
+        puts("symtab após bloco:");
+        symtab_print();
+
         symtab_next_entry = first_func_pro_index + 1;
         lexlevel--; // desce o lexical level
     };
@@ -199,7 +205,7 @@ void idstmt(void)
     int id_position = symtab_lookup(lexeme, lexlevel);
     if (id_position < 0)
     {
-        fprintf(stderr, "FATAL ERROR: symbol \"%s\" not defined\n", lexeme);
+        fprintf(stderr, SYMBOL_NOT_FOUND_ERROR, lexeme, linenum, colnum);
         error_count++;
     }
     match(ID);
@@ -393,7 +399,7 @@ void match(int expected)
         lookahead = gettoken(source);
     else
     {
-        fprintf(stderr, "Syntax error at line %d\n", linenum);
+        fprintf(stderr, SYNTAX_ERROR, lexeme, linenum, colnum);
         exit(-3);
     }
 }

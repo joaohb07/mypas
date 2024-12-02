@@ -20,7 +20,6 @@
 SYMTAB symtab[MAXSTBSIZE]; // limite de 20 simbolos para testar
 int symtab_next_entry = 0;
 
-
 // looks up a symbol append to the symbol table (symtab)
 int symtab_lookup(char *lexeme, int lexlevel)
 {
@@ -62,44 +61,58 @@ int symtab_append(char *lexeme, int lexlevel)
 }
 
 // print symtab for tests purpouses
-void symtab_print(){
+void symtab_print()
+{
     int i = 0;
+    char objtype[MAXIDLEN];
+    char type[MAXIDLEN];
+    char isparam[4];
+
+    printf("#  | %-33s | LEXLEVEL | OBJECT TYPE |   TYPE   | IS PARAM? \n", "NAME");
+    puts("-------------------------------------------------------------------------------------");
     for (i = 0; i < symtab_next_entry; i++)
     {
-        printf("Index: %d\n",i);
-        printf("%s\n", symtab[i].name);
-        printf("lexical level: %d\n", symtab[i].lexlevel);
-        switch (symtab[i].objtype){
-            case 0:
-                printf("Procedure\n");
-                break;
-            case 1:
-                printf("Function\n");
-                break;
-            default:
-                printf("Variable\n");
+        switch (symtab[i].objtype)
+        {
+        case 0:
+            strcpy(objtype, "procedure");
+            break;
+        case 1:
+            strcpy(objtype, "function");
+            break;
+        default:
+            strcpy(objtype, "variable");
         }
-        switch (symtab[i].type){
-            case 0:
-                printf("int32\n");
-                break;
-            case 1:
-                printf("int64\n");
-                break;
-            case 2:
-                printf("float32\n");
-                break;
-            case 3:
-                printf("float64\n");
-                break;    
-            default:
-                printf("boolean\n");
+        switch (symtab[i].type)
+        {
+        case 0:
+            strcpy(type, "int32");
+            break;
+        case 1:
+            strcpy(type, "int64");
+            break;
+        case 2:
+            strcpy(type, "float32");
+            break;
+        case 3:
+            strcpy(type, "float64");
+            break;
+        case 4:
+            strcpy(type, "boolean");
+            break;
+        default:
+            strcpy(type, "text");
         }
-        if (symtab[i].parmflag == 0) {
-            printf("Variable\n");
-        } else {
-            printf("Parameter\n");
+        if (symtab[i].parmflag == 0)
+        {
+            strcpy(isparam, "no");
         }
-        printf("\n");
+        else
+        {
+            strcpy(isparam, "yes");
+        }
+        printf("%-3d| %-33s | %-8d | %-11s | %-8s | %s \n",
+               i, symtab[i].name, symtab[i].lexlevel, objtype, type, isparam);
     }
-};
+    puts("");
+}
