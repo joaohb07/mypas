@@ -10,29 +10,26 @@
  * João Pedro Brum Terra
  *
  ***************************************************/
+#include <stdio.h>
 #include <string.h>
 #include <symtab.h>
-#include <stdio.h>
 
-#define MAXSTBSIZE 0x100000
-
-SYMTAB symtab[MAXSTBSIZE];
-int symtab_next_entry = 0;
+SYMTAB symtab[MAXSTBSIZE]; // tabela de simbolos
+int symtab_next_entry = 0; // proximo espaço da tabela a ser populado
 
 /*
-Realiza uma busca na tabela de simbolos
+    symtab_lookup procura por um simbolo na tabela de simbolos
+    se um simbolo da tabela tiver o mesmo nome, e um nivel lexico menor ou igual
+    ao nivel do simbolo procurado, retorna o indice do simbolo na tabela, caso contrário retorna -1
 */
 int symtab_lookup(char *lexeme, int lexlevel)
 {
-    int i = 0;
-    for (i = 0; i < symtab_next_entry; i++)
+    if (lexeme == NULL || lexlevel < 1)
     {
-        // Verifica se o simbolo lido consta na tabela de simbolo
-        /*
-        A verificação se dá primariamente pelo nome do simbolo, no caso de variaveis, o valor do nivel lexico na tabela tem de ser menor ou igual ao simbolo lido
-        para que variaveis de lexlevel L sejam acessiveis em L+1
-        */
-        // E verifica-se tambem se o simbolo lido é uma variavel (ter o .objtype == 2) ou não (ter o .objtype < 2)
+        return -1;
+    }
+    for (int i = 0; i < symtab_next_entry; i++)
+    {
         if ((strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel <= lexlevel && symtab[i].objtype == 2) ||
             (strcmp(lexeme, symtab[i].name) == 0 && symtab[i].objtype < 2))
             return i;
@@ -41,22 +38,22 @@ int symtab_lookup(char *lexeme, int lexlevel)
 };
 
 /*
-Registra um novo simbolo na tabela de simbolos
+    symtab_append registra um novo simbolo, se este ainda não foi registrado,
+    um novo registro tem inicialmente apenas seu nome e nivel lexico setado.
 */
 int symtab_append(char *lexeme, int lexlevel)
 {
+    if (lexeme == NULL || lexlevel < 1)
+    {
+        return -1;
+    }
     if (symtab_lookup(lexeme, lexlevel) == -1)
     {
         SYMTAB new_symbol = {
             .lexlevel = lexlevel,
-            .objtype = 0,
+            .objtype = 0, //
             .parmflag = 0,
             .type = 0};
-
-        if (lexeme == NULL)
-        {
-            return -1;
-        }
 
         strcpy(new_symbol.name, lexeme);
 
@@ -70,8 +67,10 @@ int symtab_append(char *lexeme, int lexlevel)
     }
 }
 
-// print symtab for tests purpouses
-void symtab_print()
+/*
+    symtab_print imprime a tabela de simbolos
+*/
+void symtab_print(void)
 {
     int i = 0;
     char objtype[MAXIDLEN];

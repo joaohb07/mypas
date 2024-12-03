@@ -24,7 +24,6 @@ enum keywords
     REPEAT,
     UNTIL,
     VAR,
-    IN,
     INTEGER,
     LONG,
     BOOLEAN,

@@ -3,7 +3,9 @@ program repeticao (input, output);
     var count: integer;
     begin
         count := 1;
-        repeat
+        repeat until count > 100
+        begin
             count := count * 2
-        until count > 100
+        end;
+        
     end.

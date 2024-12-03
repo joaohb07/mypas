@@ -23,10 +23,10 @@ enum tokens
     GEQ, // >=
     LT,  // <
     GT,  // >
+    IN,
 };
 
 extern int linenum;
 extern int colnum;
-extern int symbolsize;
 extern char lexeme[];
-extern int gettoken(FILE *source);
+extern int gettoken(FILE *);

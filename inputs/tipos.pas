@@ -1,5 +1,4 @@
 program tiposDiversos (input, output);
-{ lexical level 1 }
     var a: integer;
         b: long;
         c: real;

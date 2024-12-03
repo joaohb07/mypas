@@ -1,7 +1,7 @@
 program teste (input, output);
 { lexical level 1 }
-	var x,y: real;
-	procedure A234567890123456789A01234567890123(var z: real; w: integer);
+	var x,y: integer;
+	procedure A234567890123456789A01234567890123(var z: integer; w: integer);
 	{ lexical level 2 }
 		var t: integer;
 		begin

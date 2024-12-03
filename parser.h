@@ -10,16 +10,11 @@
  * João Pedro Brum Terra
  *
  ***************************************************/
-#include <stdio.h>
 #include <stdlib.h>
 
-/* Ponteiro para o arquivo que contém o código-fonte do programa a ser analisado */
 extern FILE *source;
-
-/* Próximo símbolo (token) a ser processado pelo analisador sintático */
 extern int lookahead;
-
-extern void match(int expected);
+extern void match(int);
 
 void program(void);
 void idlist(void);
@@ -30,7 +25,7 @@ void beginend(void);
 void stmtlst(void);
 void parmlist(void);
 void stmt(void);
-void idstmt();
+void idstmt(void);
 void ifstmt(void);
 void whlstmt(void);
 void repstmt(void);
@@ -40,6 +35,7 @@ void factor(void);
 void type(void);
 void expr(void);
 void smpexpr(void);
+
 int relop(void);
 int isoplus(void);
 int isotimes(void);

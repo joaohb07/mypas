@@ -11,57 +11,52 @@
  *
  ***************************************************/
 #include <stdio.h>
-#include <stdlib.h>
 #include <constants.h>
 #include <keywords.h>
 #include <symtab.h>
 #include <lexer.h>
 #include <parser.h>
 
-// Variáveis globais para controle do analisador
-int lexlevel = 1;      // Nível léxico atual
-int error_count = 0;   // Contador de erros
-int current_type = 0;  // Tipo atual de variável ou expressão
-int current_index = 0; // Índice atual na tabela de símbolos
-int lookahead;         // Próximo token a ser analisado
+int lexlevel = 1;
+int current_type = 0;  // tipo dos ultimos simbolos processados
+int current_index = 0; // indice auxiliar para atribuição de propriedades dos simbolos
+int lookahead;         // proximo simbolo a ser processado
 
 /*
- * Função principal do programa.
- * Verifica a estrutura geral começando com "PROGRAM",
- * processa o identificador, a lista de parâmetros e o bloco principal.
- */
+    program analisa a estrutura completa de um código pascal
+*/
 void program(void)
 {
     match(PROGRAM);
     match(ID);
     match('(');
     current_index = symtab_next_entry;
-    idlist(); // Processa a lista de identificadores
+
+    idlist();
+    // atribuindo propriedades dos simbolos registrados:
     for (int i = current_index; i < symtab_next_entry; i++)
     {
-        symtab[i].objtype = OBJ_VAR; // Marca como variável
-        symtab[i].parmflag = 1;      // Indica que é um parâmetro
-        symtab[i].type = TEXT;       // Define o tipo como texto
+        symtab[i].objtype = OBJ_VAR;
+        symtab[i].parmflag = 1;
+        symtab[i].type = TEXT;
     }
     match(')');
     match(';');
-    block(); // Analisa o bloco principal
+    block(); 
     match('.');
 }
 
 /*
- * Processa uma lista de identificadores, verificando duplicatas.
- */
+    idlist analisa uma lista de identificadores separados por virgula,
+    registrando na tabela de simbolos o nome e o nivel lexico de cada.
+*/
 void idlist(void)
 {
     int error_stat = 0;
 _idlist:
     error_stat = symtab_append(lexeme, lexlevel);
     if (error_stat)
-    {
         fprintf(stderr, SYMBOL_ALREADY_DEFINED_ERROR, lexeme, linenum, colnum);
-        error_count++;
-    }
 
     match(ID);
     if (lookahead == ',') // Verifica separador de lista
@@ -72,18 +67,21 @@ _idlist:
 }
 
 /*
- * Analisa o bloco principal de declarações e comandos.
- */
+    block analisa um bloco que:
+    - pode conter definição de variaveis
+    - pode conter definição de subprogramas e seus blocos
+    - deve conter "begin", uma lista de statments  e "end"
+*/
 void block(void)
 {
-    vardef();   // Definições de variáveis
-    sbprgdef(); // Subprogramas (procedures e functions)
-    beginend(); // Corpo principal do programa ou do subprograma
+    vardef();   // definições de variáveis
+    sbprgdef(); // subprogramas (procedures e functions)
+    beginend(); // corpo principal do programa ou do subprograma
 }
 
 /*
- * Analisa e armazena declarações de variáveis na tabela de símbolos.
- */
+    vardef analisa declarações de variáveis e às na tabela de símbolos.
+*/
 void vardef(void)
 {
     if (lookahead == VAR)
@@ -93,13 +91,15 @@ void vardef(void)
         current_index = symtab_next_entry;
         idlist();
         match(':');
-        type(); // Identifica o tipo da variável
+        type(); // utiliza variavel global para guardar o tipo da variavel lida
+
         match(';');
+        // atribuindo propriedades dos simbolos registrados:
         for (int i = current_index; i < symtab_next_entry; i++)
         {
-            symtab[i].objtype = OBJ_VAR;   // Marca como variável
-            symtab[i].parmflag = 0;        // Não é parâmetro
-            symtab[i].type = current_type; // Atribui o tipo atual
+            symtab[i].objtype = OBJ_VAR;
+            symtab[i].parmflag = 0;
+            symtab[i].type = current_type;
         }
         if (lookahead == ID)
             goto _idlist; // Continua com a próxima declaração
@@ -107,8 +107,9 @@ void vardef(void)
 }
 
 /*
- * Analisa subprogramas (procedures e functions).
- */
+    sbprgdef analisa subprogramas (procedures e functions), juntamente com seus respectivos parametros e blocos
+    ao final de cada bloco, os simbolos registrados com nivel lexico L+1 são sobreescritos
+*/
 void sbprgdef(void)
 {
     int error_stat = 0;
@@ -116,97 +117,388 @@ void sbprgdef(void)
     {
         int isfunc = (lookahead == FUNCTION);
         match(lookahead);
-        int first_func_pro_index = symtab_next_entry;
+        //  aqui é necessário salvar o valor atual de symtab_next_entry em uma variavel local
+        //  pois current_index é alterado em block();
+        int parmlist_index = symtab_next_entry;
+
         error_stat = symtab_append(lexeme, lexlevel);
         if (error_stat)
-        {
             fprintf(stderr, SYMBOL_ALREADY_DEFINED_ERROR, lexeme, linenum, colnum);
-            error_count++;
-        }
 
         match(ID);
-        parmlist(); // Processa a lista de parâmetros
+        parmlist(); // analisa a lista de parâmetros
+
+        // em symtab_append o objtype default é 0 (procedure)
+        // portanto este valor só é alterado aqui o simbolo for uma função
         if (isfunc)
         {
             match(':');
-            type(); // Tipo de retorno da função
-            symtab[first_func_pro_index].type = current_type;
-            symtab[first_func_pro_index].objtype = OBJ_FUNCTION;
+            type();
+            symtab[parmlist_index].type = current_type;
+            symtab[parmlist_index].objtype = OBJ_FUNCTION;
         }
         match(';');
-        lexlevel++; // Aumenta o nível léxico para o bloco interno
+        lexlevel++; // sobe o lexical level ao entrar em um bloco
         block();
-        match(';');
-
-        puts("symtab após bloco:");
+        printf("symtab antes de sair de um bloco de nivel lexico %d:\t(linha %d no arquivo .pas)\n", lexlevel, linenum);
         symtab_print();
-
-        symtab_next_entry = first_func_pro_index + 1;
-        lexlevel--; // Retorna ao nível léxico anterior
+        match(';');
+        symtab_next_entry = parmlist_index + 1;
+        lexlevel--; // desce o lexical level ao sair de um bloco
     };
 }
 
 /*
- * Analisa um bloco entre "BEGIN" e "END".
- */
+    beginend analisa um bloco e suas estruturas entre "BEGIN" e "END".
+*/
 void beginend(void)
 {
     match(BEGIN);
-    stmtlst(); // Lista de comandos
+    stmtlst();
     match(END);
 }
 
 /*
- * Analisa uma lista de comandos separados por ponto e vírgula.
- */
+    stmtlst analisa uma lista de instruções separados por ponto e vírgula.
+*/
 void stmtlst(void)
 {
 _stmtlst:
-    stmt(); // Analisa um comando
+    stmt(); 
     if (lookahead == ';')
     {
         match(';');
-        goto _stmtlst; // Continua para o próximo comando
+        goto _stmtlst;
     }
 }
 
 /*
- * Verifica e analisa o tipo atual.
- */
+    parmlist analisa uma lista de parâmetros de uma função ou procedimento
+*/
+void parmlist(void)
+{
+    if (lookahead == '(')
+    {
+        match('(');
+    _parmlist:
+        if (lookahead == VAR)
+        {
+            match(VAR);
+        }
+        // parametros de uma função ou procedure definida no nivel lexico L
+        // terão nivel lexico L+1
+        lexlevel++;
+        current_index = symtab_next_entry;
+        idlist();
+        lexlevel--;
+        match(':');
+        type();
+        // atribuindo propriedades dos simbolos registrados:
+        for (int i = current_index; i < symtab_next_entry; i++)
+        {
+            symtab[i].objtype = OBJ_VAR;
+            symtab[i].parmflag = 1;
+            symtab[i].type = current_type;
+        }
+        if (lookahead == ';')
+        {
+            match(';');
+            goto _parmlist;
+        }
+        match(')');
+    }
+}
+
+/*
+    stmt analisa uma instrução (stmt), que pode ser:
+    - begin
+    - idstmt  (atribuição)
+    - ifstmt  (condicional)
+    - whlstmt (while)
+    - repstmt (repeat)
+    - expr;
+*/
+void stmt(void)
+{
+    switch (lookahead)
+    {
+    case BEGIN:
+        beginend();
+        break;
+    case ID:
+        idstmt();
+        break;
+    case IF:
+        ifstmt();
+        break;
+    case WHILE:
+        whlstmt();
+        break;
+    case REPEAT:
+        repstmt();
+        break;
+    default:;
+    }
+}
+
+/*
+    idistmt analisa uma instrução que começa com um identificador, que pode ser:
+    - Uma atribuição
+    - Uma chamada de função ou procedimento com uma lista de expressões
+
+    idistmt também verifica se o identificador está declarado na tabela de símbolos.
+*/
+void idstmt(void)
+{
+    int id_position = symtab_lookup(lexeme, lexlevel);
+    if (id_position < 0)
+    {
+        fprintf(stderr, SYMBOL_NOT_FOUND_ERROR, lexeme, linenum, colnum);
+    }
+    match(ID);
+    if (lookahead == ASGN)
+    {
+        match(ASGN);
+        expr();
+    }
+    else
+    {
+        exprlist();
+    }
+}
+
+/*
+    ifstmt analisa uma instrução condicional if-then[-else]
+*/
+void ifstmt(void)
+{
+    match(IF);
+    expr();
+    match(THEN);
+    stmt();
+    if (lookahead == ELSE)
+    {
+        match(ELSE);
+        stmt();
+    }
+}
+
+/*
+    whlstmt analisa um laço de repetição da forma:
+    while (expressão é verdadeira) do
+        (instruções)
+*/
+void whlstmt(void)
+{
+    match(WHILE);
+    expr();
+    match(DO);
+    stmt();
+}
+
+/*
+    repstmt analisa um laço de repetição da forma:
+    repeat
+        (instruções)
+    until
+        (expressão ser verdadeira)
+*/
+void repstmt(void)
+{
+    match(REPEAT);
+    stmtlst();
+    match(UNTIL);
+    expr();
+}
+
+/*
+    exprlist analisa uma ou mais expressões entre parenteses separadas por virgula
+*/
+void exprlist(void)
+{
+    if (lookahead == '(')
+    {
+        match('(');
+    _exprlist:
+        expr();
+        if (lookahead == ',')
+        {
+            match(',');
+            goto _exprlist;
+        }
+        match(')');
+    }
+}
+
+/*
+    term analisa um ou mais fatores "separados" por * ou /
+*/
+void term(void)
+{
+    factor();
+    while (isotimes())
+    {
+        match(lookahead);
+        factor();
+    }
+}
+
+/*
+    factor analisa um fator que pode ser:
+    - identificador
+    - numero
+    - expressãos entre parenteses
+*/
+void factor(void)
+{
+    switch (lookahead)
+    {
+    case ID:
+        match(ID);
+        if (lookahead == ASGN)
+        {
+            match(ASGN);
+            expr();
+        }
+        else if (lookahead == '(')
+        {
+            exprlist();
+        }
+        break;
+    case NUM:
+        match(NUM);
+        break;
+    default:
+        match('(');
+        expr();
+        match(')');
+        break;
+    }
+}
+
+/*
+    expr analisa uma expressão, que pode ser:
+    - Uma expressão simples
+    - Uma expressão relacional (smpexpr relop smpexpr)
+*/
+void expr(void)
+{
+    smpexpr();
+    if (relop())
+    {
+        match(lookahead);
+        smpexpr();
+    }
+}
+
+/*
+    relop verifica se o lookahead é um operador relacional.
+*/
+int relop(void)
+{
+    switch (lookahead)
+    {
+    case LT:
+    case LEQ:
+    case EQ:
+    case NEQ:
+    case GEQ:
+    case GT:
+    case IN:
+        return lookahead;
+    default:
+        return 0;
+    }
+}
+
+/*
+    smpexpr analisa uma expressão simples, que é composta por termos conectados
+    por operadores '+' ou '-'.
+     também pode começar com um operador unário.
+*/
+void smpexpr(void)
+{
+    if (lookahead == '+' || lookahead == '-')
+    {
+        match(lookahead);
+    }
+    term();
+    while (isoplus())
+    {
+        match(lookahead);
+        term();
+    }
+}
+
+/*
+    isotimes verifica se o lookahead é um operador multiplicativo ('*' ou '/').
+*/
+int isotimes(void)
+{
+    switch (lookahead)
+    {
+    case '*':
+    case '/':
+        return lookahead;
+    default:
+        return 0;
+    }
+}
+
+/*
+    isoplus verifica se o lookahead é um operador aditivo ('+' ou '-').
+*/
+int isoplus(void)
+{
+    switch (lookahead)
+    {
+    case '+':
+    case '-':
+        return lookahead;
+    default:
+        return 0;
+    }
+}
+
+/*
+    type analisa e define o tipo atual, baseado no lookahead.
+    E atualiza a variável global 'current_type'.
+*/
 void type(void)
 {
     switch (lookahead)
     {
     case INTEGER:
-        current_type = INT32; // Define o tipo como inteiro (32 bits)
+        current_type = INT32;
         match(lookahead);
         break;
     case LONG:
-        current_type = INT64; // Inteiro longo (64 bits)
+        current_type = INT64;
         match(lookahead);
         break;
     case REAL:
-        current_type = FLOAT32; // Ponto flutuante (32 bits)
+        current_type = FLOAT32;
         match(lookahead);
         break;
     case DOUBLE:
-        current_type = FLOAT64; // Ponto flutuante (64 bits)
+        current_type = FLOAT64;
         match(lookahead);
         break;
     default:
-        current_type = BOOL; // Booleano
+        current_type = BOOL;
         match(BOOLEAN);
     }
 }
 
 /*
- * Verifica se o próximo token é o esperado.
- * Caso contrário, emite um erro de sintaxe.
- */
+   match compara o valor de lookahead com um valor esperado
+*/
 void match(int expected)
 {
     if (lookahead == expected)
-        lookahead = gettoken(source); // Lê o próximo token
+    {
+        lookahead = gettoken(source);
+    }
     else
     {
         fprintf(stderr, SYNTAX_ERROR, lexeme, linenum, colnum);

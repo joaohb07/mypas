@@ -12,8 +12,8 @@
  ***************************************************/
 #include <string.h>
 #include <ctype.h>
-#include <keywords.h>
 #include <constants.h>
+#include <keywords.h>
 
 char *keyword[] = {
     "begin",
@@ -28,7 +28,6 @@ char *keyword[] = {
     "repeat",
     "until",
     "var",
-    "in",
     "integer",
     "long",
     "boolean",
@@ -37,17 +36,18 @@ char *keyword[] = {
     "end"};
 
 /*
-Verifica se o identificador lido é uma palavra chave
+    Verifica se o identificador lido é uma palavra chave
 */
 int iskeyword(char *lexeme)
 {
     int token;
     char identifier[MAXIDLEN];
-    strcpy(identifier, lexeme);
+    strcpy(identifier, lexeme); // copia lexeme para uma variavel local
 
     for (int i = 0; i < strlen(identifier); ++i)
     {
-        identifier[i] = tolower(identifier[i]); // Converte valor para lowercase para realizar a comparação
+        // converte valor para lowercase para realizar a comparação
+        identifier[i] = tolower(identifier[i]);
     }
 
     for (token = BEGIN; token <= END; token++)

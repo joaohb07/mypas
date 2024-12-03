@@ -12,24 +12,18 @@
  ***************************************************/
 #include <ctype.h>
 #include <stdlib.h>
-#include <constants.h>
 #include <string.h>
+#include <constants.h>
 #include <keywords.h>
 #include <lexer.h>
 
-char lexeme[MAXIDLEN + 1];
-int linenum = 1;
-int colnum = 1;
-int symbolsize;
+char lexeme[MAXIDLEN + 1]; // string que armazena o simbolo lido para ser analizado
+int linenum = 1;           // numero da linha
+int colnum = 1;            // numero da coluna
+int symbolsize;            // variavel auxiliar para a atualização de colnum
 
 /*
-    Operadores relacionais:
-    EQ,  // =
-    NEQ, // <>
-    LEQ, // <=
-    GEQ, // >=
-    LT,  // <
-    GT  // >
+  RELOP = "=" | "<>" | "<=" | ">=" | "<" | ">" | "in"
 */
 int isRELOP(FILE *tape)
 {
@@ -41,24 +35,37 @@ int isRELOP(FILE *tape)
         lexeme[i] = getc(tape);
         if (lexeme[i] == '=')
         {
+            symbolsize = 2;
             return LEQ;
         }
         if (lexeme[i] == '>')
         {
+            symbolsize = 2;
             return NEQ;
         }
+        symbolsize = 1;
         return LT;
 
     case '>':
         i++;
         if ((lexeme[i] = getc(tape)) == '=')
         {
+            symbolsize = 2;
             return GEQ;
         }
+        symbolsize = 1;
         return GT;
 
     case '=':
+        symbolsize = 1;
         return EQ;
+    case 'i':
+        i++;
+        if ((lexeme[i] = getc(tape)) == 'n')
+        {
+            symbolsize = 2;
+            return IN;
+        }
     };
     ungetc(lexeme[i], tape);
     lexeme[0] = 0;
@@ -78,22 +85,21 @@ int isID(FILE *tape)
         while (isalnum(lexeme[i] = getc(tape)))
             ++i;
 
-        if (i > MAXIDLEN)
+        if (i > MAXIDLEN) // verifica se o identificador não excede o tamanho limite
         {
             lexeme[i] = 0;
             fprintf(stderr, IDENTIFIER_NAME_ERROR, lexeme, linenum, colnum);
             return 0;
         }
-
         ungetc(lexeme[i], tape);
         lexeme[i] = 0;
 
         symbolsize = i;
 
-        int token = iskeyword(lexeme);
-        if (token)
+        int token = iskeyword(lexeme); // verifica se o identificador encontrado não é palavra reservada
+        if (token)                     // se for palavra reservada, retorna o token desta palavra,
             return token;
-        else
+        else // caso contrário retorna o token ID
             return ID;
     }
     ungetc(lexeme[i], tape);
@@ -123,7 +129,7 @@ int isASGN(FILE *tape)
 }
 
 /*
-    isNUM valida números de ponto flutuante que são lidos pelo fscanf
+    NUM = [0-9]|([0-9])"."(([0-9])|"e"("+"|"-")[0-9])[0-9]|([0-9])"."(([0-9])|"e"("+"|"-")[0-9])
 */
 int isNUM(FILE *tape)
 {
@@ -149,7 +155,7 @@ int isNUM(FILE *tape)
 }
 
 /*
-    skipspaces ignora os espaços em branco e troca fim de linha por ; para delimitar expressões
+    skipspaces ignora os espaços em branco, atualiza os valores de linenum e colnum
 */
 void skipspaces(FILE *tape)
 {
@@ -193,12 +199,11 @@ _skipspaces:
         }
         goto _skipspaces;
     }
-
     ungetc(head, tape);
 }
 
 /*
-    gettoken verifica se o tipo do proximo simbolo a ser processado
+    gettoken consome um simbolo de source e o classifica, se for possivel
 */
 int gettoken(FILE *source)
 {

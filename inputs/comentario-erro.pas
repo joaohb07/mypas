@@ -1,14 +1,12 @@
 program teste (input, output);
-{ lexical level 1 }
 	var x,y: real;
-	procedure A(var z: real; w: integer);
-	{ lexical level 2 }
-		var t: integer;
+	procedure A(var z: real; w: real);
+		var t: real;
 		begin
 			t := z + w * x * y
 		end;
 	
-	{ comentario mal 
+	{ comentario incompleto
 	
 	begin
 		y:= x + y
