@@ -27,6 +27,7 @@ enum vartype
     FLOAT32,   // "real"
     FLOAT64,   // "double"
     BOOL,      // "boolean"
+    TEXT,
 };
 
 typedef struct _symtab_
