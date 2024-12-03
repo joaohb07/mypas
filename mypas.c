@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
     }
     if (argc == 2)
     {
-        // source = fopen("./inputs/teste4.pas", "r");
         source = fopen(argv[1], "r");
         char *extension = strrchr(argv[1], '.');
 

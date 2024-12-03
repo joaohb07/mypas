@@ -32,46 +32,36 @@ int symbolsize;
 */
 int isRELOP(FILE *tape)
 {
-    int relop = 0;
     int i = 0;
     switch (lexeme[i] = getc(tape))
     {
     case '<':
         i++;
-        if ((lexeme[i] = getc(tape)) == '=')
+        lexeme[i] = getc(tape);
+        if (lexeme[i] == '=')
         {
-            relop = LEQ;
-            break;
+            return LEQ;
         }
         if (lexeme[i] == '>')
         {
-            relop = NEQ;
-            break;
+            return NEQ;
         }
-        ungetc(lexeme[i], tape);
-        i--;
-        ungetc(lexeme[i], tape);
-        relop = LT;
-        break;
+        return LT;
+
     case '>':
         i++;
         if ((lexeme[i] = getc(tape)) == '=')
         {
-            relop = GEQ;
-            break;
+            return GEQ;
         }
-        ungetc(lexeme[i], tape);
-        relop = GT;
-        break;
+        return GT;
+
     case '=':
-        ungetc(lexeme[i], tape);
-        relop = EQ;
-        break;
+        return EQ;
     };
     ungetc(lexeme[i], tape);
-    lexeme[i] = 0;
-    symbolsize = i;
-    return relop;
+    lexeme[0] = 0;
+    return 0;
 }
 
 /*
@@ -84,8 +74,8 @@ int isID(FILE *tape)
     if (isalpha(lexeme[i] = getc(tape)))
     {
         ++i;
-        while (isalnum(lexeme[i] = getc(tape)))            
-                ++i;
+        while (isalnum(lexeme[i] = getc(tape)))
+            ++i;
 
         if (i > MAXIDLEN)
         {
@@ -120,7 +110,6 @@ int isASGN(FILE *tape)
     {
         if ((lexeme[1] = getc(tape)) == '=')
         {
-
             symbolsize = 2;
             lexeme[2] = 0;
             return ASGN;
@@ -154,7 +143,7 @@ int isNUM(FILE *tape)
         return NUM;
     }
     ungetc(lexeme[0], tape);
-    lexeme[0] = '\0';
+    lexeme[0] = 0;
     return 0;
 }
 
