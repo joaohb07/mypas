@@ -34,19 +34,20 @@ char *keyword[] = {
     "boolean",
     "double",
     "real",
-    "end"
-};
+    "end"};
 
-
+/*
+Verifica se o identificador lido é uma palavra chave
+*/
 int iskeyword(char *lexeme)
 {
     int token;
-    char identifier[MAXIDLEN]; 
+    char identifier[MAXIDLEN];
     strcpy(identifier, lexeme);
 
     for (int i = 0; i < strlen(identifier); ++i)
     {
-        identifier[i] = tolower(identifier[i]);
+        identifier[i] = tolower(identifier[i]); // Converte valor para lowercase para realizar a comparação
     }
 
     for (token = BEGIN; token <= END; token++)

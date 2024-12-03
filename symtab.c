@@ -14,26 +14,35 @@
 #include <symtab.h>
 #include <stdio.h>
 
-// #define MAXSTBSIZE 0x100000
-#define MAXSTBSIZE 20
+#define MAXSTBSIZE 0x100000
 
-SYMTAB symtab[MAXSTBSIZE]; // limite de 20 simbolos para testar
+SYMTAB symtab[MAXSTBSIZE];
 int symtab_next_entry = 0;
 
-// looks up a symbol append to the symbol table (symtab)
+/*
+Realiza uma busca na tabela de simbolos
+*/
 int symtab_lookup(char *lexeme, int lexlevel)
 {
     int i = 0;
     for (i = 0; i < symtab_next_entry; i++)
     {
-        if ((strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel <= lexlevel && symtab[i].objtype == 2 )|| 
+        // Verifica se o simbolo lido consta na tabela de simbolo
+        /*
+        A verificação se dá primariamente pelo nome do simbolo, no caso de variaveis, o valor do nivel lexico na tabela tem de ser menor ou igual ao simbolo lido
+        para que variaveis de lexlevel L sejam acessiveis em L+1
+        */
+        // E verifica-se tambem se o simbolo lido é uma variavel (ter o .objtype == 2) ou não (ter o .objtype < 2)
+        if ((strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel <= lexlevel && symtab[i].objtype == 2) ||
             (strcmp(lexeme, symtab[i].name) == 0 && symtab[i].objtype < 2))
             return i;
     }
     return -1;
 };
 
-// looks up a predefined
+/*
+Registra um novo simbolo na tabela de simbolos
+*/
 int symtab_append(char *lexeme, int lexlevel)
 {
     if (symtab_lookup(lexeme, lexlevel) == -1)

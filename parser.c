@@ -18,31 +18,40 @@
 #include <lexer.h>
 #include <parser.h>
 
-int lexlevel = 1;
-int error_count = 0;
-int current_type = 0;
-int current_index = 0;
-int lookahead;
+// Variáveis globais para controle do analisador
+int lexlevel = 1;      // Nível léxico atual
+int error_count = 0;   // Contador de erros
+int current_type = 0;  // Tipo atual de variável ou expressão
+int current_index = 0; // Índice atual na tabela de símbolos
+int lookahead;         // Próximo token a ser analisado
 
+/*
+ * Função principal do programa.
+ * Verifica a estrutura geral começando com "PROGRAM",
+ * processa o identificador, a lista de parâmetros e o bloco principal.
+ */
 void program(void)
 {
     match(PROGRAM);
     match(ID);
     match('(');
     current_index = symtab_next_entry;
-    idlist();
+    idlist(); // Processa a lista de identificadores
     for (int i = current_index; i < symtab_next_entry; i++)
     {
-        symtab[i].objtype = OBJ_VAR;
-        symtab[i].parmflag = 1;
-        symtab[i].type = TEXT;
+        symtab[i].objtype = OBJ_VAR; // Marca como variável
+        symtab[i].parmflag = 1;      // Indica que é um parâmetro
+        symtab[i].type = TEXT;       // Define o tipo como texto
     }
     match(')');
     match(';');
-    block();
+    block(); // Analisa o bloco principal
     match('.');
 }
 
+/*
+ * Processa uma lista de identificadores, verificando duplicatas.
+ */
 void idlist(void)
 {
     int error_stat = 0;
@@ -55,20 +64,26 @@ _idlist:
     }
 
     match(ID);
-    if (lookahead == ',')
+    if (lookahead == ',') // Verifica separador de lista
     {
         match(',');
-        goto _idlist;
+        goto _idlist; // Repete para o próximo identificador
     }
 }
 
+/*
+ * Analisa o bloco principal de declarações e comandos.
+ */
 void block(void)
 {
-    vardef();
-    sbprgdef();
-    beginend();
+    vardef();   // Definições de variáveis
+    sbprgdef(); // Subprogramas (procedures e functions)
+    beginend(); // Corpo principal do programa ou do subprograma
 }
 
+/*
+ * Analisa e armazena declarações de variáveis na tabela de símbolos.
+ */
 void vardef(void)
 {
     if (lookahead == VAR)
@@ -78,19 +93,22 @@ void vardef(void)
         current_index = symtab_next_entry;
         idlist();
         match(':');
-        type();
+        type(); // Identifica o tipo da variável
         match(';');
         for (int i = current_index; i < symtab_next_entry; i++)
         {
-            symtab[i].objtype = OBJ_VAR;
-            symtab[i].parmflag = 0;
-            symtab[i].type = current_type;
+            symtab[i].objtype = OBJ_VAR;   // Marca como variável
+            symtab[i].parmflag = 0;        // Não é parâmetro
+            symtab[i].type = current_type; // Atribui o tipo atual
         }
         if (lookahead == ID)
-            goto _idlist;
+            goto _idlist; // Continua com a próxima declaração
     }
 }
 
+/*
+ * Analisa subprogramas (procedures e functions).
+ */
 void sbprgdef(void)
 {
     int error_stat = 0;
@@ -107,16 +125,16 @@ void sbprgdef(void)
         }
 
         match(ID);
-        parmlist();
+        parmlist(); // Processa a lista de parâmetros
         if (isfunc)
         {
             match(':');
-            type();
+            type(); // Tipo de retorno da função
             symtab[first_func_pro_index].type = current_type;
             symtab[first_func_pro_index].objtype = OBJ_FUNCTION;
         }
         match(';');
-        lexlevel++; // sobe o lexical level
+        lexlevel++; // Aumenta o nível léxico para o bloco interno
         block();
         match(';');
 
@@ -124,279 +142,71 @@ void sbprgdef(void)
         symtab_print();
 
         symtab_next_entry = first_func_pro_index + 1;
-        lexlevel--; // desce o lexical level
+        lexlevel--; // Retorna ao nível léxico anterior
     };
 }
 
+/*
+ * Analisa um bloco entre "BEGIN" e "END".
+ */
 void beginend(void)
 {
     match(BEGIN);
-    stmtlst();
+    stmtlst(); // Lista de comandos
     match(END);
 }
 
+/*
+ * Analisa uma lista de comandos separados por ponto e vírgula.
+ */
 void stmtlst(void)
 {
 _stmtlst:
-    stmt();
+    stmt(); // Analisa um comando
     if (lookahead == ';')
     {
         match(';');
-        goto _stmtlst;
+        goto _stmtlst; // Continua para o próximo comando
     }
 }
 
-void parmlist(void)
-{
-    if (lookahead == '(')
-    {
-        match('(');
-    _parmlist:
-        if (lookahead == VAR)
-        {
-            match(VAR);
-        }
-        lexlevel++;
-        int first_index = symtab_next_entry;
-        idlist();
-        lexlevel--;
-        match(':');
-        type();
-        for (int i = first_index; i < symtab_next_entry; i++)
-        {
-            symtab[i].objtype = OBJ_VAR;
-            symtab[i].parmflag = 1;
-            symtab[i].type = current_type;
-        }
-        if (lookahead == ';')
-        {
-            match(';');
-            goto _parmlist;
-        }
-        match(')');
-    }
-}
-
-void stmt(void)
-{
-    switch (lookahead)
-    {
-    case BEGIN:
-        beginend();
-        break;
-    case ID:
-        idstmt();
-        break;
-    case IF:
-        ifstmt();
-        break;
-    case WHILE:
-        whlstmt();
-        break;
-    case REPEAT:
-        repstmt();
-        break;
-    default:;
-    }
-}
-
-void idstmt(void)
-{
-    int id_position = symtab_lookup(lexeme, lexlevel);
-    if (id_position < 0)
-    {
-        fprintf(stderr, SYMBOL_NOT_FOUND_ERROR, lexeme, linenum, colnum);
-        error_count++;
-    }
-    match(ID);
-    if (lookahead == ASGN)
-    {
-        match(ASGN);
-        expr();
-    }
-    else
-    {
-        exprlist();
-    }
-}
-
-void ifstmt(void)
-{
-    match(IF);
-    expr();
-    match(THEN);
-    stmt();
-    if (lookahead == ELSE)
-    {
-        match(ELSE);
-        stmt();
-    }
-}
-
-void whlstmt(void)
-{
-    match(WHILE);
-    expr();
-    match(DO);
-    stmt();
-}
-
-void repstmt(void)
-{
-    match(REPEAT);
-    stmtlst();
-    match(UNTIL);
-    expr();
-}
-
-void exprlist(void)
-{
-    if (lookahead == '(')
-    {
-        match('(');
-    _exprlist:
-        expr();
-        if (lookahead == ',')
-        {
-            match(',');
-            goto _exprlist;
-        }
-        match(')');
-    }
-}
-
-void term(void)
-{
-    factor();
-    while (isotimes())
-    {
-        match(lookahead);
-        factor();
-    }
-}
-
-void factor(void)
-{
-    switch (lookahead)
-    {
-    case ID:
-        match(ID);
-        if (lookahead == ASGN)
-        {
-            match(ASGN);
-            expr();
-        }
-        else if (lookahead == '(')
-        {
-            exprlist();
-        }
-        break;
-    case NUM:
-        match(NUM);
-        break;
-    default:
-        match('(');
-        expr();
-        match(')');
-        break;
-    }
-}
-
-void expr(void)
-{
-    smpexpr();
-    if (relop())
-    {
-        match(lookahead);
-        smpexpr();
-    }
-}
-
-int relop(void)
-{
-    switch (lookahead)
-    {
-    case LT:
-    case LEQ:
-    case EQ:
-    case NEQ:
-    case GEQ:
-    case GT:
-    case IN:
-        return lookahead;
-    default:
-        return 0;
-    }
-}
-
-void smpexpr(void)
-{
-    if (lookahead == '+' || lookahead == '-')
-    {
-        match(lookahead);
-    }
-    term();
-    while (isoplus())
-    {
-        match(lookahead);
-        term();
-    }
-}
-
-int isotimes(void)
-{
-    switch (lookahead)
-    {
-    case '*':
-    case '/':
-        return lookahead;
-    default:
-        return 0;
-    }
-}
-
-int isoplus(void)
-{
-    switch (lookahead)
-    {
-    case '+':
-    case '-':
-        return lookahead;
-    default:
-        return 0;
-    }
-}
-
+/*
+ * Verifica e analisa o tipo atual.
+ */
 void type(void)
 {
     switch (lookahead)
     {
     case INTEGER:
-        current_type = INT32;
+        current_type = INT32; // Define o tipo como inteiro (32 bits)
         match(lookahead);
         break;
     case LONG:
-        current_type = INT64;
+        current_type = INT64; // Inteiro longo (64 bits)
         match(lookahead);
         break;
     case REAL:
-        current_type = FLOAT32;
+        current_type = FLOAT32; // Ponto flutuante (32 bits)
         match(lookahead);
         break;
     case DOUBLE:
-        current_type = FLOAT64;
+        current_type = FLOAT64; // Ponto flutuante (64 bits)
         match(lookahead);
         break;
     default:
-        current_type = BOOL;
+        current_type = BOOL; // Booleano
         match(BOOLEAN);
     }
 }
 
+/*
+ * Verifica se o próximo token é o esperado.
+ * Caso contrário, emite um erro de sintaxe.
+ */
 void match(int expected)
 {
     if (lookahead == expected)
-        lookahead = gettoken(source);
+        lookahead = gettoken(source); // Lê o próximo token
     else
     {
         fprintf(stderr, SYNTAX_ERROR, lexeme, linenum, colnum);
