@@ -11,7 +11,6 @@
  *
  ***************************************************/
 #include <stdio.h>
-#include <stdlib.h>
 #include <constants.h>
 #include <keywords.h>
 #include <symtab.h>
@@ -19,11 +18,13 @@
 #include <parser.h>
 
 int lexlevel = 1;
-int error_count = 0;
-int current_type = 0;
-int current_index = 0;
-int lookahead;
+int current_type = 0;  // tipo dos ultimos simbolos processados
+int current_index = 0; // indice auxiliar para atribuição de propriedades dos simbolos
+int lookahead;         // proximo simbolo a ser processado
 
+/*
+    program analisa a estrutura completa de um código pascal
+*/
 void program(void)
 {
     match(PROGRAM);
@@ -31,6 +32,7 @@ void program(void)
     match('(');
     current_index = symtab_next_entry;
     idlist();
+    // atribuindo propriedades dos simbolos registrados:
     for (int i = current_index; i < symtab_next_entry; i++)
     {
         symtab[i].objtype = OBJ_VAR;
@@ -43,16 +45,17 @@ void program(void)
     match('.');
 }
 
+/*
+    idlist analisa uma lista de identificadores separados por virgula,
+    registrando na tabela de simbolos o nome e o nivel lexico de cada.
+*/
 void idlist(void)
 {
     int error_stat = 0;
 _idlist:
     error_stat = symtab_append(lexeme, lexlevel);
     if (error_stat)
-    {
         fprintf(stderr, SYMBOL_ALREADY_DEFINED_ERROR, lexeme, linenum, colnum);
-        error_count++;
-    }
 
     match(ID);
     if (lookahead == ',')
@@ -62,13 +65,22 @@ _idlist:
     }
 }
 
+/*
+    block analisa um bloco que:
+    - pode conter definição de variaveis
+    - pode conter definição de subprogramas e seus blocos
+    - deve conter "begin", uma lista de statments  e "end"
+*/
 void block(void)
 {
-    vardef();
-    sbprgdef();
-    beginend();
+    vardef();   // definições de variáveis
+    sbprgdef(); // subprogramas (procedures e functions)
+    beginend(); // corpo principal do programa ou do subprograma
 }
 
+/*
+    vardef analisa declarações de variáveis e às na tabela de símbolos.
+*/
 void vardef(void)
 {
     if (lookahead == VAR)
@@ -78,8 +90,9 @@ void vardef(void)
         current_index = symtab_next_entry;
         idlist();
         match(':');
-        type();
+        type(); // utiliza variavel global para guardar o tipo da variavel lida
         match(';');
+        // atribuindo propriedades dos simbolos registrados:
         for (int i = current_index; i < symtab_next_entry; i++)
         {
             symtab[i].objtype = OBJ_VAR;
@@ -91,6 +104,10 @@ void vardef(void)
     }
 }
 
+/*
+    sbprgdef analisa subprogramas (procedures e functions), juntamente com seus respectivos blocos
+    ao final de cada bloco, os simbolos registrados com nivel lexico L+1 são sobreescritos
+*/
 void sbprgdef(void)
 {
     int error_stat = 0;
@@ -98,36 +115,40 @@ void sbprgdef(void)
     {
         int isfunc = (lookahead == FUNCTION);
         match(lookahead);
-        int first_func_pro_index = symtab_next_entry;
+        //  aqui é necessário salvar o valor atual de symtab_next_entry em uma variavel local
+        //  pois current_index é alterado em block();
+        int parmlist_index = symtab_next_entry;
+
         error_stat = symtab_append(lexeme, lexlevel);
         if (error_stat)
-        {
             fprintf(stderr, SYMBOL_ALREADY_DEFINED_ERROR, lexeme, linenum, colnum);
-            error_count++;
-        }
 
         match(ID);
-        parmlist();
+        parmlist(); // analisa a lista de parâmetros
+
+        // em symtab_append o objtype default é 0 (procedure)
+        // portanto este valor só é alterado aqui o simbolo for uma função
         if (isfunc)
         {
             match(':');
             type();
-            symtab[first_func_pro_index].type = current_type;
-            symtab[first_func_pro_index].objtype = OBJ_FUNCTION;
+            symtab[parmlist_index].type = current_type;
+            symtab[parmlist_index].objtype = OBJ_FUNCTION;
         }
         match(';');
-        lexlevel++; // sobe o lexical level
+        lexlevel++; // sobe o lexical level ao entrar em um bloco
         block();
-        match(';');
-
-        puts("symtab após bloco:");
+        printf("symtab antes de sair de um bloco de nivel lexico %d:\t(linha %d no arquivo .pas)\n", lexlevel, linenum);
         symtab_print();
-
-        symtab_next_entry = first_func_pro_index + 1;
-        lexlevel--; // desce o lexical level
+        match(';');
+        symtab_next_entry = parmlist_index + 1;
+        lexlevel--; // desce o lexical level ao sair de um bloco
     };
 }
 
+/*
+    beginend analisa um bloco e suas estruturas entre "BEGIN" e "END".
+*/
 void beginend(void)
 {
     match(BEGIN);
@@ -135,6 +156,9 @@ void beginend(void)
     match(END);
 }
 
+/*
+    stmtlst analisa uma lista de instruções separados por ponto e vírgula.
+*/
 void stmtlst(void)
 {
 _stmtlst:
@@ -146,6 +170,9 @@ _stmtlst:
     }
 }
 
+/*
+    parmlist analisa uma lista de parâmetros de uma função ou procedimento
+*/
 void parmlist(void)
 {
     if (lookahead == '(')
@@ -156,13 +183,16 @@ void parmlist(void)
         {
             match(VAR);
         }
+        // parametros de uma função ou procedure definida no nivel lexico L
+        // terão nivel lexico L+1
         lexlevel++;
-        int first_index = symtab_next_entry;
+        current_index = symtab_next_entry;
         idlist();
         lexlevel--;
         match(':');
         type();
-        for (int i = first_index; i < symtab_next_entry; i++)
+        // atribuindo propriedades dos simbolos registrados:
+        for (int i = current_index; i < symtab_next_entry; i++)
         {
             symtab[i].objtype = OBJ_VAR;
             symtab[i].parmflag = 1;
@@ -177,6 +207,15 @@ void parmlist(void)
     }
 }
 
+/*
+    stmt analisa uma instrução (stmt), que pode ser:
+    - begin
+    - idstmt  (atribuição)
+    - ifstmt  (condicional)
+    - whlstmt (while)
+    - repstmt (repeat)
+    - expr;
+*/
 void stmt(void)
 {
     switch (lookahead)
@@ -200,13 +239,19 @@ void stmt(void)
     }
 }
 
+/*
+    idistmt analisa uma instrução que começa com um identificador, que pode ser:
+    - Uma atribuição
+    - Uma chamada de função ou procedimento com uma lista de expressões
+
+    idistmt também verifica se o identificador está declarado na tabela de símbolos.
+*/
 void idstmt(void)
 {
     int id_position = symtab_lookup(lexeme, lexlevel);
     if (id_position < 0)
     {
         fprintf(stderr, SYMBOL_NOT_FOUND_ERROR, lexeme, linenum, colnum);
-        error_count++;
     }
     match(ID);
     if (lookahead == ASGN)
@@ -220,6 +265,9 @@ void idstmt(void)
     }
 }
 
+/*
+    ifstmt analisa uma instrução condicional if-then[-else]
+*/
 void ifstmt(void)
 {
     match(IF);
@@ -233,6 +281,11 @@ void ifstmt(void)
     }
 }
 
+/*
+    whlstmt analisa um laço de repetição da forma:
+    while (expressão é verdadeira) do
+        (instruções)
+*/
 void whlstmt(void)
 {
     match(WHILE);
@@ -241,6 +294,13 @@ void whlstmt(void)
     stmt();
 }
 
+/*
+    repstmt analisa um laço de repetição da forma:
+    repeat
+        (instruções)
+    until
+        (expressão ser verdadeira)
+*/
 void repstmt(void)
 {
     match(REPEAT);
@@ -249,6 +309,9 @@ void repstmt(void)
     expr();
 }
 
+/*
+    exprlist analisa uma ou mais expressões entre parenteses separadas por virgula
+*/
 void exprlist(void)
 {
     if (lookahead == '(')
@@ -265,6 +328,9 @@ void exprlist(void)
     }
 }
 
+/*
+    term analisa um ou mais fatores "separados" por * ou /
+*/
 void term(void)
 {
     factor();
@@ -275,6 +341,12 @@ void term(void)
     }
 }
 
+/*
+    factor analisa um fator que pode ser:
+    - identificador
+    - numero
+    - expressãos entre parenteses
+*/
 void factor(void)
 {
     switch (lookahead)
@@ -302,6 +374,11 @@ void factor(void)
     }
 }
 
+/*
+    expr analisa uma expressão, que pode ser:
+    - Uma expressão simples
+    - Uma expressão relacional (smpexpr relop smpexpr)
+*/
 void expr(void)
 {
     smpexpr();
@@ -312,23 +389,31 @@ void expr(void)
     }
 }
 
+/*
+    relop verifica se o lookahead é um operador relacional.
+*/
 int relop(void)
 {
     switch (lookahead)
     {
-    case LT:
-    case LEQ:
-    case EQ:
-    case NEQ:
-    case GEQ:
-    case GT:
-    case IN:
+    case LT:  // <
+    case LEQ: // <=
+    case EQ:  // =
+    case NEQ: // <>
+    case GEQ: // >=
+    case GT:  // >
+    case IN:  // IN
         return lookahead;
     default:
         return 0;
     }
 }
 
+/*
+    smpexpr analisa uma expressão simples, que é composta por termos conectados
+    por operadores '+' ou '-'.
+     também pode começar com um operador unário.
+*/
 void smpexpr(void)
 {
     if (lookahead == '+' || lookahead == '-')
@@ -343,6 +428,9 @@ void smpexpr(void)
     }
 }
 
+/*
+    isotimes verifica se o lookahead é um operador multiplicativo ('*' ou '/').
+*/
 int isotimes(void)
 {
     switch (lookahead)
@@ -355,6 +443,9 @@ int isotimes(void)
     }
 }
 
+/*
+    isoplus verifica se o lookahead é um operador aditivo ('+' ou '-').
+*/
 int isoplus(void)
 {
     switch (lookahead)
@@ -367,6 +458,10 @@ int isoplus(void)
     }
 }
 
+/*
+    type analisa e define o tipo atual, baseado no lookahead.
+    E atualiza a variável global 'current_type'.
+*/
 void type(void)
 {
     switch (lookahead)
@@ -392,11 +487,15 @@ void type(void)
         match(BOOLEAN);
     }
 }
-
+/*
+   match compara o valor de lookahead com um valor esperado
+*/
 void match(int expected)
 {
     if (lookahead == expected)
+    {
         lookahead = gettoken(source);
+    }
     else
     {
         fprintf(stderr, SYNTAX_ERROR, lexeme, linenum, colnum);

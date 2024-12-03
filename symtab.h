@@ -10,7 +10,7 @@
  * João Pedro Brum Terra
  *
  ***************************************************/
-#pragma once
+// #pragma once
 #include <constants.h>
 
 enum objtype
@@ -27,34 +27,24 @@ enum vartype
     FLOAT32,   // "real"
     FLOAT64,   // "double"
     BOOL,      // "boolean"
-    TEXT,
+    TEXT,      
+    /*  TEXT está aqui apenas simbolicamente, para que os parametros do programa principal não sejam do tipo int32
+        este tipo não ainda não é tratado de forma concreta no parser ou no lexer
+    */
 };
 
 typedef struct _symtab_
 {
     char name[MAXIDLEN];
     int objtype;
-    // objtype pode ser == 0 if procedure;
-    //== 1 if function;
-    //== 2 if variable
     int type;
-    // type == 0 if int;
-    // type == 1 if int64;
-    // == 2 if float32;
-    // == 3 if float64;
-    // == 4 if bool
     int lexlevel;
     int parmflag;
-    // == 0 if variable;
-    // == 1 if parameter
 } SYMTAB;
 
 extern SYMTAB symtab[];
-// looks up a symbol append to the symbol table (symtab)
-extern int symtab_lookup(char *, int);
-// looks up a predefined
-extern int symtab_append(char *, int);
-
-extern void symtab_print();
-
 extern int symtab_next_entry;
+
+extern int symtab_lookup(char *, int);
+extern int symtab_append(char *, int);
+extern void symtab_print(void);

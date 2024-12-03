@@ -10,15 +10,11 @@
  * João Pedro Brum Terra
  *
  ***************************************************/
-#include <stdio.h>
 #include <stdlib.h>
 
 extern FILE *source;
-/* proximo simbolo a ser processado */
 extern int lookahead;
-extern void match(int expected);
-
-// extern int gettoken(FILE *);
+extern void match(int);
 
 void program(void);
 void idlist(void);
@@ -39,6 +35,7 @@ void factor(void);
 void type(void);
 void expr(void);
 void smpexpr(void);
+
 int relop(void);
 int isoplus(void);
 int isotimes(void);

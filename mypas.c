@@ -12,9 +12,9 @@
  ***************************************************/
 #include <stdio.h>
 #include <string.h>
+#include <constants.h>
 #include <symtab.h>
 #include <lexer.h>
-#include <constants.h>
 #include <parser.h>
 
 FILE *source;

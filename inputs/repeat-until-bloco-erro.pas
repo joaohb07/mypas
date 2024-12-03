@@ -4,6 +4,8 @@ program repeticao (input, output);
     begin
         count := 1;
         repeat until count > 100
+        begin
             count := count * 2
+        end;
         
     end.
