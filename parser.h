@@ -13,12 +13,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* Ponteiro para o arquivo que contém o código-fonte do programa a ser analisado */
 extern FILE *source;
-/* proximo simbolo a ser processado */
-extern int lookahead;
-extern void match(int expected);
 
-// extern int gettoken(FILE *);
+/* Próximo símbolo (token) a ser processado pelo analisador sintático */
+extern int lookahead;
+
+extern void match(int expected);
 
 void program(void);
 void idlist(void);
