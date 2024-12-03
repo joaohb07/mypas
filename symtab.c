@@ -26,7 +26,8 @@ int symtab_lookup(char *lexeme, int lexlevel)
     int i = 0;
     for (i = 0; i < symtab_next_entry; i++)
     {
-        if ((strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel == lexlevel) || (strcmp(lexeme, symtab[i].name) == 0 && symtab[i].objtype == 1))
+        if ((strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel <= lexlevel && symtab[i].objtype == 2 )|| 
+            (strcmp(lexeme, symtab[i].name) == 0 && symtab[i].objtype < 2))
             return i;
     }
     return -1;

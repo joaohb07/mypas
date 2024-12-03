@@ -11,6 +11,7 @@
  *
  ***************************************************/
 #include <ctype.h>
+#include <stdlib.h>
 #include <constants.h>
 #include <string.h>
 #include <keywords.h>
@@ -178,11 +179,13 @@ _skipspaces:
 
     if (head == '{')
     {
+        int comment_begin_line = linenum;
         while (head != '}')
         {
             if (head == EOF)
             {
-                break;
+                fprintf(stderr, UNTERMINED_COMMENT_ERROR, comment_begin_line);
+                exit(1);
             }
             if (head == '\n')
                 linenum++;
