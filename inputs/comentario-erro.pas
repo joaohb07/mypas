@@ -1,7 +1,7 @@
 program teste (input, output);
 	var x,y: real;
-	procedure A(var z: real; w: integer);
-		var t: integer;
+	procedure A(var z: real; w: real);
+		var t: real;
 		begin
 			t := z + w * x * y
 		end;

@@ -10,7 +10,6 @@
  * João Pedro Brum Terra
  *
  ***************************************************/
-// #pragma once
 #include <constants.h>
 
 enum objtype

@@ -1,6 +1,6 @@
 program repeticao (input, output);
 { lexical level 1 }
-    var count: integer;
+    var count: long;
     begin
         count := 1;
         repeat

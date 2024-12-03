@@ -129,7 +129,7 @@ int isASGN(FILE *tape)
 }
 
 /*
-    isNUM valida números de ponto flutuante que são lidos pelo fscanf
+    NUM = [0-9]|([0-9])"."(([0-9])|"e"("+"|"-")[0-9])[0-9]|([0-9])"."(([0-9])|"e"("+"|"-")[0-9])
 */
 int isNUM(FILE *tape)
 {

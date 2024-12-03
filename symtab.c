@@ -16,6 +16,7 @@
 
 SYMTAB symtab[MAXSTBSIZE]; // tabela de simbolos
 int symtab_next_entry = 0; // proximo espaço da tabela a ser populado
+
 /*
     symtab_lookup procura por um simbolo na tabela de simbolos
     se um simbolo da tabela tiver o mesmo nome, e um nivel lexico menor ou igual
@@ -26,13 +27,11 @@ int symtab_lookup(char *lexeme, int lexlevel)
     if (lexeme == NULL || lexlevel < 1)
     {
         return -1;
-    }    
+    }
     for (int i = 0; i < symtab_next_entry; i++)
     {
-        // antes:
-        // if ((strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel <= lexlevel && symtab[i].objtype == 2 )||
-        //     (strcmp(lexeme, symtab[i].name) == 0 && symtab[i].objtype < 2))
-        if (strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel <= lexlevel)
+        if ((strcmp(lexeme, symtab[i].name) == 0 && symtab[i].lexlevel <= lexlevel && symtab[i].objtype == 2) ||
+            (strcmp(lexeme, symtab[i].name) == 0 && symtab[i].objtype < 2))
             return i;
     }
     return -1;
@@ -52,7 +51,7 @@ int symtab_append(char *lexeme, int lexlevel)
     {
         SYMTAB new_symbol = {
             .lexlevel = lexlevel,
-            .objtype = 0,           //
+            .objtype = 0, //
             .parmflag = 0,
             .type = 0};
 

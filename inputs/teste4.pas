@@ -1,7 +1,7 @@
 program teste (input, output);
 { lexical level 1 }
-	var x,y: real;
-	procedure A(var z: real; w: integer);
+	var x,y: integer;
+	procedure A(var z: integer; w: integer);
 	{ lexical level 2 }
 		var t: integer;
 		begin

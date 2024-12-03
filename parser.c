@@ -36,13 +36,13 @@ void program(void)
     // atribuindo propriedades dos simbolos registrados:
     for (int i = current_index; i < symtab_next_entry; i++)
     {
-        symtab[i].objtype = OBJ_VAR; // Marca como variável
-        symtab[i].parmflag = 1;      // Indica que é um parâmetro
-        symtab[i].type = TEXT;       // Define o tipo como texto
+        symtab[i].objtype = OBJ_VAR;
+        symtab[i].parmflag = 1;
+        symtab[i].type = TEXT;
     }
     match(')');
     match(';');
-    block(); // Analisa o bloco principal
+    block(); 
     match('.');
 }
 
@@ -97,9 +97,9 @@ void vardef(void)
         // atribuindo propriedades dos simbolos registrados:
         for (int i = current_index; i < symtab_next_entry; i++)
         {
-            symtab[i].objtype = OBJ_VAR;   // Marca como variável
-            symtab[i].parmflag = 0;        // Não é parâmetro
-            symtab[i].type = current_type; // Atribui o tipo atual
+            symtab[i].objtype = OBJ_VAR;
+            symtab[i].parmflag = 0;
+            symtab[i].type = current_type;
         }
         if (lookahead == ID)
             goto _idlist; // Continua com a próxima declaração
@@ -107,7 +107,7 @@ void vardef(void)
 }
 
 /*
-    sbprgdef analisa subprogramas (procedures e functions), juntamente com seus respectivos blocos
+    sbprgdef analisa subprogramas (procedures e functions), juntamente com seus respectivos parametros e blocos
     ao final de cada bloco, os simbolos registrados com nivel lexico L+1 são sobreescritos
 */
 void sbprgdef(void)
@@ -154,7 +154,7 @@ void sbprgdef(void)
 void beginend(void)
 {
     match(BEGIN);
-    stmtlst(); // Lista de comandos
+    stmtlst();
     match(END);
 }
 
@@ -164,7 +164,7 @@ void beginend(void)
 void stmtlst(void)
 {
 _stmtlst:
-    stmt(); // Analisa um comando
+    stmt(); 
     if (lookahead == ';')
     {
         match(';');
@@ -398,13 +398,13 @@ int relop(void)
 {
     switch (lookahead)
     {
-    case LT:  // <
-    case LEQ: // <=
-    case EQ:  // =
-    case NEQ: // <>
-    case GEQ: // >=
-    case GT:  // >
-    case IN:  // IN
+    case LT:
+    case LEQ:
+    case EQ:
+    case NEQ:
+    case GEQ:
+    case GT:
+    case IN:
         return lookahead;
     default:
         return 0;
@@ -469,23 +469,23 @@ void type(void)
     switch (lookahead)
     {
     case INTEGER:
-        current_type = INT32; // Define o tipo como inteiro (32 bits)
+        current_type = INT32;
         match(lookahead);
         break;
     case LONG:
-        current_type = INT64; // Inteiro longo (64 bits)
+        current_type = INT64;
         match(lookahead);
         break;
     case REAL:
-        current_type = FLOAT32; // Ponto flutuante (32 bits)
+        current_type = FLOAT32;
         match(lookahead);
         break;
     case DOUBLE:
-        current_type = FLOAT64; // Ponto flutuante (64 bits)
+        current_type = FLOAT64;
         match(lookahead);
         break;
     default:
-        current_type = BOOL; // Booleano
+        current_type = BOOL;
         match(BOOLEAN);
     }
 }

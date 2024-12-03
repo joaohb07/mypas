@@ -12,7 +12,6 @@
  ***************************************************/
 #include <stdlib.h>
 
-/* Ponteiro para o arquivo que contém o código-fonte do programa a ser analisado */
 extern FILE *source;
 extern int lookahead;
 extern void match(int);
@@ -26,7 +25,7 @@ void beginend(void);
 void stmtlst(void);
 void parmlist(void);
 void stmt(void);
-void idstmt();
+void idstmt(void);
 void ifstmt(void);
 void whlstmt(void);
 void repstmt(void);
