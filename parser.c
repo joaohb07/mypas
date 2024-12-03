@@ -31,17 +31,18 @@ void program(void)
     match(ID);
     match('(');
     current_index = symtab_next_entry;
+
     idlist();
     // atribuindo propriedades dos simbolos registrados:
     for (int i = current_index; i < symtab_next_entry; i++)
     {
-        symtab[i].objtype = OBJ_VAR;
-        symtab[i].parmflag = 1;
-        symtab[i].type = TEXT;
+        symtab[i].objtype = OBJ_VAR; // Marca como variável
+        symtab[i].parmflag = 1;      // Indica que é um parâmetro
+        symtab[i].type = TEXT;       // Define o tipo como texto
     }
     match(')');
     match(';');
-    block();
+    block(); // Analisa o bloco principal
     match('.');
 }
 
@@ -58,10 +59,10 @@ _idlist:
         fprintf(stderr, SYMBOL_ALREADY_DEFINED_ERROR, lexeme, linenum, colnum);
 
     match(ID);
-    if (lookahead == ',')
+    if (lookahead == ',') // Verifica separador de lista
     {
         match(',');
-        goto _idlist;
+        goto _idlist; // Repete para o próximo identificador
     }
 }
 
@@ -91,16 +92,17 @@ void vardef(void)
         idlist();
         match(':');
         type(); // utiliza variavel global para guardar o tipo da variavel lida
+
         match(';');
         // atribuindo propriedades dos simbolos registrados:
         for (int i = current_index; i < symtab_next_entry; i++)
         {
-            symtab[i].objtype = OBJ_VAR;
-            symtab[i].parmflag = 0;
-            symtab[i].type = current_type;
+            symtab[i].objtype = OBJ_VAR;   // Marca como variável
+            symtab[i].parmflag = 0;        // Não é parâmetro
+            symtab[i].type = current_type; // Atribui o tipo atual
         }
         if (lookahead == ID)
-            goto _idlist;
+            goto _idlist; // Continua com a próxima declaração
     }
 }
 
@@ -152,7 +154,7 @@ void sbprgdef(void)
 void beginend(void)
 {
     match(BEGIN);
-    stmtlst();
+    stmtlst(); // Lista de comandos
     match(END);
 }
 
@@ -162,7 +164,7 @@ void beginend(void)
 void stmtlst(void)
 {
 _stmtlst:
-    stmt();
+    stmt(); // Analisa um comando
     if (lookahead == ';')
     {
         match(';');
@@ -467,26 +469,27 @@ void type(void)
     switch (lookahead)
     {
     case INTEGER:
-        current_type = INT32;
+        current_type = INT32; // Define o tipo como inteiro (32 bits)
         match(lookahead);
         break;
     case LONG:
-        current_type = INT64;
+        current_type = INT64; // Inteiro longo (64 bits)
         match(lookahead);
         break;
     case REAL:
-        current_type = FLOAT32;
+        current_type = FLOAT32; // Ponto flutuante (32 bits)
         match(lookahead);
         break;
     case DOUBLE:
-        current_type = FLOAT64;
+        current_type = FLOAT64; // Ponto flutuante (64 bits)
         match(lookahead);
         break;
     default:
-        current_type = BOOL;
+        current_type = BOOL; // Booleano
         match(BOOLEAN);
     }
 }
+
 /*
    match compara o valor de lookahead com um valor esperado
 */

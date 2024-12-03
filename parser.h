@@ -12,6 +12,7 @@
  ***************************************************/
 #include <stdlib.h>
 
+/* Ponteiro para o arquivo que contém o código-fonte do programa a ser analisado */
 extern FILE *source;
 extern int lookahead;
 extern void match(int);

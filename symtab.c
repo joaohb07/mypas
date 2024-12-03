@@ -16,7 +16,6 @@
 
 SYMTAB symtab[MAXSTBSIZE]; // tabela de simbolos
 int symtab_next_entry = 0; // proximo espaço da tabela a ser populado
-
 /*
     symtab_lookup procura por um simbolo na tabela de simbolos
     se um simbolo da tabela tiver o mesmo nome, e um nivel lexico menor ou igual
